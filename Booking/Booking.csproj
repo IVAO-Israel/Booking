@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Booking.Client\Booking.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
   </ItemGroup>
 
 </Project>
