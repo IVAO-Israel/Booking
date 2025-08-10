@@ -15,9 +15,12 @@ namespace Booking.Data
             modelBuilder.Entity<EventAtcPosition>().HasOne(p => p.Event).WithMany(p => p.AvailableAtcPositions)
                                                    .HasForeignKey(p => p.EventId);
             modelBuilder.Entity<EventAtcPosition>().HasOne(p => p.AtcPosition).WithMany().HasForeignKey(p => p.AtcPositionId);
+            modelBuilder.Entity<AtcPositionBooking>().HasOne(p => p.EventAtcPosition).WithMany(p => p.Bookings)
+                                                     .HasForeignKey(p => p.EventAtcPositionId);
         }
         public DbSet<Event> Events { get; set; }
         public DbSet<AtcPosition> AtcPositions { get; set; }
         public DbSet<EventAtcPosition> EventAtcPositions { get; set; }
+        public DbSet<AtcPositionBooking> BookedAtcPositions { get; set; }
     }
 }

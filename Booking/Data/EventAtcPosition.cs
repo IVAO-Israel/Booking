@@ -11,9 +11,10 @@ namespace Booking.Data
         public Guid Id { get; set; }
         public required int EventId { get; set; }
         public required Event Event { get; set; }
-        public required Guid AtcPositionId { get; set; }
-        public required AtcPosition AtcPosition { get; set; }
+        public Guid AtcPositionId { get; set; }
+        public AtcPosition AtcPosition { get; set; } = default!;
         public required DateTime BegingTime { get; set; }
         public required DateTime EndTime { get; set; }
+        public ICollection<AtcPositionBooking>? Bookings { get; set; }
     }
 }
