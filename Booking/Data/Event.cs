@@ -11,5 +11,6 @@ namespace Booking.Data
         public required DateTime BeginTime { get; set; }
         public required DateTime EndTime { get; set; }
         public bool IsVisible { get; set; }
+        public ICollection<EventAtcPosition>? AvailableAtcPositions { get; set; }
     }
 }
