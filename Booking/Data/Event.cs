@@ -3,6 +3,9 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Booking.Data
 {
+    /// <summary>
+    /// Event for which booking is needed.
+    /// </summary>
     public class Event
     {
         [Key]
