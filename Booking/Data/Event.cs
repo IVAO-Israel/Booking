@@ -9,11 +9,12 @@ namespace Booking.Data
     public class Event
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public required string Name { get; set; }
         public required DateTime BeginTime { get; set; }
         public required DateTime EndTime { get; set; }
         public bool IsVisible { get; set; }
+        public required string Url { get; set; }
         public ICollection<EventAtcPosition>? AvailableAtcPositions { get; set; }
     }
 }
