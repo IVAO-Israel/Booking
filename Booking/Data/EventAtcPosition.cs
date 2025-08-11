@@ -15,6 +15,7 @@ namespace Booking.Data
         public AtcPosition AtcPosition { get; set; } = default!;
         public required DateTime BegingTime { get; set; }
         public required DateTime EndTime { get; set; }
+        public int RequiredRating { get; set; }
         public ICollection<AtcPositionBooking>? Bookings { get; set; }
     }
 }
