@@ -13,7 +13,7 @@ namespace Booking.Data
         public required Event Event { get; set; }
         public Guid AtcPositionId { get; set; }
         public AtcPosition AtcPosition { get; set; } = default!;
-        public required DateTime BegingTime { get; set; }
+        public required DateTime BeginTime { get; set; }
         public required DateTime EndTime { get; set; }
         public int RequiredRating { get; set; }
         public ICollection<AtcPositionBooking>? Bookings { get; set; }
