@@ -34,8 +34,10 @@ namespace Booking
             .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {
                 options.Authority = "https://api.ivao.aero";
-                options.ClientId = builder.Configuration["OpenId:ClientId"];
-                options.ClientSecret = builder.Configuration["OpenId:ClientSecret"];
+                options.ProtocolValidator.RequireNonce = true;
+                options.UsePkce = true;
+                options.ClientId = builder.Configuration["Authentication:OIDC:ClientId"];
+                options.ClientSecret = builder.Configuration["Authentication:OIDC:ClientSecret"];
                 options.ResponseType = "code";
                 options.SaveTokens = true;
 

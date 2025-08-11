@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
 using Booking.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Booking.Authorization
 {
@@ -14,7 +15,7 @@ namespace Booking.Authorization
             AuthorizationHandlerContext context,
             AdministratorRequirement requirement)
         {
-            var vid = context.User.FindFirst("sub")?.Value; // IVAO user ID from OIDC claim
+            var vid = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value; // IVAO user ID from OIDC claim
 
             if (vid != null && int.TryParse(vid, out int userId))
             {
