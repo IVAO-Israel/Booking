@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Booking.Data
 {
