@@ -21,5 +21,6 @@ namespace Booking.Data
         public DbSet<AtcPosition> AtcPositions { get; set; }
         public DbSet<EventAtcPosition> EventAtcPositions { get; set; }
         public DbSet<AtcPositionBooking> BookedAtcPositions { get; set; }
+        public DbSet<Administrator> Administrators { get; set; }
     }
 }
