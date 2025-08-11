@@ -1,0 +1,19 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Booking.Data
+{
+    /// <summary>
+    /// Event for which booking is needed.
+    /// </summary>
+    public class Event
+    {
+        [Key]
+        public Guid Id { get; set; }
+        public required string Name { get; set; }
+        public required DateTime BeginTime { get; set; }
+        public required DateTime EndTime { get; set; }
+        public bool IsVisible { get; set; }
+        public required string Url { get; set; }
+        public ICollection<EventAtcPosition>? AvailableAtcPositions { get; set; }
+    }
+}
