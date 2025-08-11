@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 
 namespace Booking
 {
@@ -15,6 +16,18 @@ namespace Booking
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information() // Log Information and above
+                .WriteTo.File(
+                    path: Path.Combine(AppContext.BaseDirectory, "Logs", "log-.txt"),
+                    rollingInterval: RollingInterval.Day,      // New file each day
+                    retainedFileCountLimit: 14,               // Keep logs for 14 days
+                    fileSizeLimitBytes: 10_000_000,           // 10 MB max per file
+                    rollOnFileSizeLimit: true)
+                .CreateLogger();
+
+            // Use Serilog
+            builder.Host.UseSerilog();
 
             // Add services to the container.
             builder.Services.AddRazorComponents()
