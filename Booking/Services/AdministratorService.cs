@@ -22,7 +22,7 @@ namespace Booking.Services
         }
         async Task<Administrator?> IAdministratorService.GetAdministrator(int IVAOUserId)
         {
-            return await _dbContext.Administrators.Where(a => a.IVAOUserId  == IVAOUserId).FirstOrDefaultAsync();
+            return await _dbContext.Administrators.Where(a => a.IVAOUserId  == IVAOUserId).AsNoTracking().FirstOrDefaultAsync();
         }
         void IAdministratorService.UpdateAdministrator(Administrator administrator)
         {
