@@ -47,7 +47,7 @@ namespace Booking.Tests.Services
         }
         Task<List<Event>> IEventService.GetUpcomingEventsForAtc()
         {
-            return Task.FromResult(_events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible && e.AvailableAtcPositions is not null && e.AvailableAtcPositions.Any()).ToList());
+            return Task.FromResult(_events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible && e.AvailableAtcPositions != null && e.AvailableAtcPositions.Any()).ToList());
         }
     }
 }
