@@ -1,0 +1,104 @@
+﻿@page "/events/upcoming"
+@using Booking.Extensions
+@using Microsoft.AspNetCore.Authorization
+@using Booking.Data
+@using Booking.Services.Interfaces
+@inject IEventService EventService
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+@rendermode InteractiveServer
+<PageTitle>Upcoming events</PageTitle>
+<script>
+	// Initialize all tooltips on the page
+	document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+	  new bootstrap.Tooltip(el);
+	});
+</script>
+<h1 class="text-center">Upcoming events</h1>
+@if(Events is null)
+{
+	<div class="text-center"><div class="spinner-border"></div>Loading...</div>
+} else if(!Events.Any())
+{
+	<div class="text-center">No upcoming events.</div>
+} else
+{
+	<table class="table table-bordered table-hover">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Date</th>
+				<th>Time</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach(Event e in Events)
+			{
+				<tr>
+					<td>@e.Name</td>
+					<td>@Date(e)</td>
+					<td>@Time(e)</td>
+					<td>
+						<div>
+							<button class="btn btn-primary"
+									data-bs-toggle="tooltip"
+									data-bs-placement="top"
+									title="Book ATC position"
+									@onclick="()=>BookAtc(e)">&#x1F3A7;</button>
+							<button class="btn btn-primary" 
+									data-bs-toggle="tooltip" 
+									data-bs-placement="top"
+									title="Book flight"
+									@onclick="()=>BookFlight(e)">&#x2708;</button>
+						</div>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@code {
+	private List<Event>? Events;
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await Load();
+		}
+	}
+	private async Task Load()
+	{
+		Events = await EventService.GetUpcomingEvents();
+		await InvokeAsync(StateHasChanged);
+	}
+	private string Date(Event eventObj)
+	{
+		if(eventObj.BeginTime.Date == eventObj.BeginTime.Date)
+		{
+			return eventObj.BeginTime.ToDisplayDate();
+		} else
+		{
+			return $"{eventObj.BeginTime.ToDisplayDate()}-{eventObj.EndTime.ToDisplayDate()}";
+		}
+	}
+	private string Time(Event eventObj)
+	{
+		if (eventObj.BeginTime.Date == eventObj.BeginTime.Date)
+		{
+			return $"{eventObj.BeginTime.ToDisplayTime()}-{eventObj.EndTime.ToDisplayTime()}";
+		} else
+		{
+			return $"{eventObj.BeginTime.ToDisplayDate()} {eventObj.BeginTime.ToDisplayTime()}-{eventObj.EndTime.ToDisplayDate()} {eventObj.EndTime.ToDisplayTime()}";
+		}
+	}
+	private void BookAtc(Event eventObj)
+	{
+		//TODO: Add navigation
+	}
+	private void BookFlight(Event eventObj)
+	{
+		//TODO: Add navigation		
+	}
+}
