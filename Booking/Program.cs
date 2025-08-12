@@ -107,6 +107,7 @@ namespace Booking
             }
 
             app.UseHttpsRedirection();
+            app.UseSerilogRequestLogging();
 
             app.UseAntiforgery();
 
