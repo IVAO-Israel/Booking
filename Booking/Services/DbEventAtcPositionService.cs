@@ -15,6 +15,7 @@ namespace Booking.Services
             {
                 if (!position.HasOverlap())
                 {
+                    position.Event.AvailableAtcPositions.Add(position);
                     _dbContext.Entry(position).State = EntityState.Added;
                 } else
                 {
