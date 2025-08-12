@@ -9,7 +9,7 @@ namespace Booking.Data
     {
         [Key]
         public Guid Id { get; set; }
-        public required Guid EventId { get; set; }
+        public Guid EventId { get; set; }
         public required Event Event { get; set; }
         public Guid AtcPositionId { get; set; }
         public AtcPosition AtcPosition { get; set; } = default!;
