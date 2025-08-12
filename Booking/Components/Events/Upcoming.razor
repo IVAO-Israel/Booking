@@ -41,16 +41,21 @@
 					<td>@Time(e)</td>
 					<td>
 						<div>
+							@if(e.AvailableAtcPositions is not null && e.AvailableAtcPositions.Any()){
 							<button class="btn btn-primary"
 									data-bs-toggle="tooltip"
 									data-bs-placement="top"
 									title="Book ATC position"
 									@onclick="()=>BookAtc(e)">&#x1F3A7;</button>
-							<button class="btn btn-primary" 
+							} else if(e.AvailableAtcPositions is not null)
+							{
+								//TODO: what if no ATC booking for event
+							}
+							<!--<button class="btn btn-primary" 
 									data-bs-toggle="tooltip" 
 									data-bs-placement="top"
 									title="Book flight"
-									@onclick="()=>BookFlight(e)">&#x2708;</button>
+									@onclick="()=>BookFlight(e)">&#x2708;</button>-->
 						</div>
 					</td>
 				</tr>
@@ -71,6 +76,10 @@
 	private async Task Load()
 	{
 		Events = await EventService.GetUpcomingEvents();
+		foreach(Event e in Events)
+		{
+			EventService.LoadAvailableAtcPositions(e);
+		}
 		await InvokeAsync(StateHasChanged);
 	}
 	private string Date(Event eventObj)
@@ -99,6 +108,6 @@
 	}
 	private void BookFlight(Event eventObj)
 	{
-		//TODO: Add navigation		
+		//TODO: Add navigation
 	}
 }
