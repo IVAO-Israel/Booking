@@ -21,7 +21,10 @@ namespace Booking.Tests.Services
         }
         void IEventService.LoadAvailableAtcPositions(Event eventObj)
         {
-            eventObj.AvailableAtcPositions = [];
+            if (eventObj.AvailableAtcPositions is null)
+            {
+                eventObj.AvailableAtcPositions = [];
+            }
         }
         void IEventService.RemoveEvent(Event eventObj)
         {
