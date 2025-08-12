@@ -47,7 +47,7 @@ namespace Booking.Tests
             //Arrange
             IEventService service = new MockEventService();
             Guid id = Guid.NewGuid();
-            Event e = new ()
+            Event e = new()
             {
                 Id = id,
                 Name = "New event",
@@ -241,11 +241,12 @@ namespace Booking.Tests
                 AvailableAtcPositions = positions
             };
             service.AddEvent(e);
-            positions.Add(new EventAtcPosition() { 
+            positions.Add(new EventAtcPosition()
+            {
                 EventId = e.Id,
-                Event = e, 
-                BeginTime = DateTime.UtcNow.AddHours(5), 
-                EndTime = DateTime.UtcNow.AddDays(1) 
+                Event = e,
+                BeginTime = DateTime.UtcNow.AddHours(5),
+                EndTime = DateTime.UtcNow.AddDays(1)
             });
             service.AddEvent(new()
             {

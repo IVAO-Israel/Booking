@@ -1,4 +1,4 @@
-using Booking.Data;
+﻿using Booking.Data;
 using Booking.Services.Interfaces;
 using Booking.Tests.Extensions;
 
@@ -13,7 +13,7 @@ namespace Booking.Tests.Services
         }
         Task<Event?> IEventService.GetEvent(Guid id)
         {
-            return Task.FromResult(_events.Where(e =>  e.Id == id).FirstOrDefault());
+            return Task.FromResult(_events.Where(e => e.Id == id).FirstOrDefault());
         }
         Task<Event?> IEventService.GetEventByUrl(string url)
         {
