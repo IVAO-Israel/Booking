@@ -85,10 +85,10 @@ namespace Booking
             // Authorization
             builder.Services.AddAuthorizationBuilder().AddPolicy("Administrator", policy => policy.Requirements.Add(new AdministratorRequirement()));
 
+            builder.Services.AddScoped<IAdministratorService, DbAdministratorService>();
+
             // Register handler for Administrator protection
             builder.Services.AddScoped<IAuthorizationHandler, AdministratorAuthorizationHandler>();
-
-            builder.Services.AddScoped<IAdministratorService, DbAdministratorService>();
 
             var app = builder.Build();
 

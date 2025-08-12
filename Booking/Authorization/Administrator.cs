@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Booking.Data;
+using Booking.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Booking.Authorization
@@ -7,11 +8,11 @@ namespace Booking.Authorization
     public class AdministratorRequirement : IAuthorizationRequirement
     {
     }
-    public class AdministratorAuthorizationHandler(BookingDbContext dbContext) : AuthorizationHandler<AdministratorRequirement>
+    public class AdministratorAuthorizationHandler(IAdministratorService administratorService) : AuthorizationHandler<AdministratorRequirement>
     {
-        private readonly BookingDbContext _dbContext = dbContext;
+        private readonly IAdministratorService _administratorService = administratorService;
 
-        protected override Task HandleRequirementAsync(
+        protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
             AdministratorRequirement requirement)
         {
@@ -19,15 +20,13 @@ namespace Booking.Authorization
 
             if (vid != null && int.TryParse(vid, out int userId))
             {
-                var isAdmin = _dbContext.Administrators.Any(a => a.IVAOUserId == userId);
+                var admin = await _administratorService.GetAdministrator(userId);
 
-                if (isAdmin)
+                if (admin is not null)
                 {
                     context.Succeed(requirement);
                 }
             }
-
-            return Task.CompletedTask;
         }
     }
 }
