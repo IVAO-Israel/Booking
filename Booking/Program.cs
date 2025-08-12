@@ -2,6 +2,8 @@ using System.Security.Claims;
 using Booking.Authorization;
 using Booking.Components;
 using Booking.Data;
+using Booking.Services;
+using Booking.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
@@ -85,6 +87,8 @@ namespace Booking
 
             // Register handler for Administrator protection
             builder.Services.AddScoped<IAuthorizationHandler, AdministratorAuthorizationHandler>();
+
+            builder.Services.AddScoped<IAdministratorService, DbAdministratorService>();
 
             var app = builder.Build();
 
