@@ -75,7 +75,7 @@
 	}
 	private async Task Load()
 	{
-		Events = await EventService.GetUpcomingEvents();
+		Events = (await EventService.GetUpcomingEvents()).OrderBy(e => e.BeginTime).ToList();
 		foreach(Event e in Events)
 		{
 			EventService.LoadAvailableAtcPositions(e);
