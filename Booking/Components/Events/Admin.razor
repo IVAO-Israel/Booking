@@ -62,7 +62,7 @@
 		Events = (await EventService.GetAllEvents()).OrderBy(e => e.BeginTime).ToList();
 		foreach(Event e in Events)
 		{
-			EventService.LoadAvailableAtcPositions(e);
+			await EventService.LoadAvailableAtcPositions(e);
 		}
 		await InvokeAsync(StateHasChanged);
 	}
