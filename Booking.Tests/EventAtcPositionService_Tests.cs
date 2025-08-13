@@ -28,7 +28,7 @@ namespace Booking.Tests
                 Id = id,
                 Event = eventObj,
                 EventId = eventObj.Id,
-                BeginTime = DateTime.UtcNow, 
+                BeginTime = DateTime.UtcNow,
                 EndTime = DateTime.UtcNow.AddHours(1)
             };
             eventService.LoadAvailableAtcPositions(eventObj);
@@ -81,7 +81,7 @@ namespace Booking.Tests
             //Act
 
             //Assert
-            Assert.Throws<ArgumentException>(()=> service.AddEventAtcPosition(position1));
+            Assert.Throws<ArgumentException>(() => service.AddEventAtcPosition(position1));
         }
     }
 }

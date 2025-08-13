@@ -4,20 +4,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Services
 {
-    public class DbAtcPositionBookingService (BookingDbContext dbContext, IEventAtcPositionService eventAtcPositionService) : IAtcPositionBookingService
+    public class DbAtcPositionBookingService(BookingDbContext dbContext, IEventAtcPositionService eventAtcPositionService) : IAtcPositionBookingService
     {
         private readonly BookingDbContext _dbContext = dbContext;
         private readonly IEventAtcPositionService _eventAtcPositionService = eventAtcPositionService;
         void IAtcPositionBookingService.AddAtcPositionBooking(AtcPositionBooking booking)
         {
             _eventAtcPositionService.LoadBookings(booking.EventAtcPosition);
-            if(booking.EventAtcPosition.Bookings is not null)
+            if (booking.EventAtcPosition.Bookings is not null)
             {
                 if (!booking.HasOverlap())
                 {
                     booking.EventAtcPosition.Bookings.Add(booking);
                     _dbContext.Entry(booking).State = EntityState.Added;
-                } else
+                }
+                else
                 {
                     throw new ArgumentException("Bookings are overlapping.");
                 }
@@ -29,10 +30,11 @@ namespace Booking.Services
         }
         void IAtcPositionBookingService.RemoveAtcPositionBooking(AtcPositionBooking booking)
         {
-            if(_dbContext.Entry(booking).State == EntityState.Added)
+            if (_dbContext.Entry(booking).State == EntityState.Added)
             {
                 _dbContext.Entry(booking).State = EntityState.Detached;
-            } else
+            }
+            else
             {
                 _dbContext.Entry(booking).State = EntityState.Deleted;
             }
