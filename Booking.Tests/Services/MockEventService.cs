@@ -19,12 +19,13 @@ namespace Booking.Tests.Services
         {
             return Task.FromResult(_events.Where(e => e.Url == url).FirstOrDefault());
         }
-        void IEventService.LoadAvailableAtcPositions(Event eventObj)
+        Task IEventService.LoadAvailableAtcPositions(Event eventObj)
         {
             if (eventObj.AvailableAtcPositions is null)
             {
                 eventObj.AvailableAtcPositions = [];
             }
+            return Task.CompletedTask;
         }
         void IEventService.RemoveEvent(Event eventObj)
         {
