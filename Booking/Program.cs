@@ -46,7 +46,12 @@ namespace Booking
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
             })
-            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+            {
+                options.LoginPath = "/login";
+                options.LogoutPath = "/logout";
+                options.AccessDeniedPath = "/accessdenied";
+            })
             .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {
                 options.Authority = "https://api.ivao.aero";
@@ -135,6 +140,10 @@ namespace Booking
                 {
                     RedirectUri = "/" // Redirect after logout
                 });
+            });
+            app.MapGet("/accessdenied", async context =>
+            {
+                await context.Response.WriteAsync("Access Denied: You do not have permission to view this page.");
             });
 
             app.Run();
