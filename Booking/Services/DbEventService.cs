@@ -21,7 +21,8 @@ namespace Booking.Services
         }
         void IEventService.LoadAvailableAtcPositions(Event eventObj)
         {
-            _dbContext.Entry(eventObj).Collection(e => e.AvailableAtcPositions!).LoadAsync();
+            _dbContext.Entry(eventObj).Collection(e => e.AvailableAtcPositions!).Query()
+                .Include(p => p.AtcPosition).LoadAsync();
         }
         void IEventService.RemoveEvent(Event eventObj)
         {
