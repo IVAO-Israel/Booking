@@ -3,7 +3,9 @@
 @using Microsoft.AspNetCore.Authorization
 @using Booking.Data
 @using Booking.Services.Interfaces
+@using Microsoft.EntityFrameworkCore
 @inject IEventService EventService
+@inject BookingDbContext DbContext
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 <PageTitle>Upcoming events</PageTitle>
@@ -77,7 +79,7 @@
 		Events = (await EventService.GetUpcomingEvents()).OrderBy(e => e.BeginTime).ToList();
 		foreach(Event e in Events)
 		{
-			EventService.LoadAvailableAtcPositions(e);
+			await EventService.LoadAvailableAtcPositions(e);
 		}
 		await InvokeAsync(StateHasChanged);
 	}
@@ -103,7 +105,7 @@
 	}
 	private void BookAtc(Event eventObj)
 	{
-		NavigationManager.NavigateTo($"events/{eventObj.Url}/atc/positions");
+		NavigationManager.NavigateTo($"event/{eventObj.Url}/atc/positions");
 	}
 	private void BookFlight(Event eventObj)
 	{
