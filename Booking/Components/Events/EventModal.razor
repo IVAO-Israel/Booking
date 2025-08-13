@@ -94,6 +94,10 @@
             }
             else
             {
+                if (!Event.IsVisible)
+                {
+                    Event.Url = null;
+                }
                 EventService.UpdateEvent(Event);
             }
             await DbContext.SaveChangesAsync();
