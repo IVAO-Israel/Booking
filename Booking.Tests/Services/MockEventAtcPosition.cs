@@ -1,11 +1,9 @@
 ﻿using Booking.Data;
-using Booking.Services;
 using Booking.Services.Interfaces;
 using Booking.Tests.Extensions;
-using Microsoft.EntityFrameworkCore;
 namespace Booking.Tests.Services
 {
-    internal class MockEventAtcPosition (IEventService eventService) : IEventAtcPosition
+    internal class MockEventAtcPosition(IEventService eventService) : IEventAtcPosition
     {
         private readonly IEventService _eventService = eventService;
         private readonly List<EventAtcPosition> _positions = [];

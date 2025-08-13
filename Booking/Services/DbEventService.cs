@@ -6,7 +6,7 @@ namespace Booking.Services
 {
     public class DbEventService(BookingDbContext dbContext) : IEventService
     {
-        private BookingDbContext _dbContext = dbContext;
+        private readonly BookingDbContext _dbContext = dbContext;
         void IEventService.AddEvent(Event eventObj)
         {
             _dbContext.Entry(eventObj).State = EntityState.Added;
@@ -19,9 +19,12 @@ namespace Booking.Services
         {
             return await _dbContext.Events.Where(e => e.Url == url).AsNoTracking().FirstOrDefaultAsync();
         }
-        void IEventService.LoadAvailableAtcPositions(Event eventObj)
+        async Task IEventService.LoadAvailableAtcPositions(Event eventObj)
         {
-            _dbContext.Entry(eventObj).Collection(e => e.AvailableAtcPositions!).LoadAsync();
+            _dbContext.Entry(eventObj).State = EntityState.Unchanged;
+            await _dbContext.Entry(eventObj).Collection(e => e.AvailableAtcPositions!).Query()
+                    .Include(p => p.AtcPosition).LoadAsync();
+            _dbContext.Entry(eventObj).State = EntityState.Detached;
         }
         void IEventService.RemoveEvent(Event eventObj)
         {
@@ -43,15 +46,15 @@ namespace Booking.Services
         }
         async Task<List<Event>> IEventService.GetAllEvents()
         {
-            return await _dbContext.Events.ToListAsync();
+            return await _dbContext.Events.AsNoTracking().ToListAsync();
         }
         async Task<List<Event>> IEventService.GetUpcomingEvents()
         {
-            return await _dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible).ToListAsync();
+            return await _dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible).AsNoTracking().ToListAsync();
         }
         async Task<List<Event>> IEventService.GetUpcomingEventsForAtc()
         {
-            return await _dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible && e.AvailableAtcPositions != null && e.AvailableAtcPositions.Any()).ToListAsync();
+            return await _dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible && e.AvailableAtcPositions != null && e.AvailableAtcPositions.Any()).AsNoTracking().ToListAsync();
         }
     }
 }

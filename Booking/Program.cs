@@ -4,6 +4,7 @@ using Booking.Components;
 using Booking.Data;
 using Booking.Services;
 using Booking.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
@@ -33,7 +34,7 @@ namespace Booking
 
             // Add services to the container.
             builder.Services.AddRazorComponents()
-                .AddInteractiveServerComponents()
+                .AddInteractiveServerComponents(options => options.DetailedErrors = true)
                 .AddInteractiveWebAssemblyComponents();
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -45,7 +46,12 @@ namespace Booking
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
             })
-            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+            {
+                options.LoginPath = "/login";
+                options.LogoutPath = "/logout";
+                options.AccessDeniedPath = "/accessdenied";
+            })
             .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {
                 options.Authority = "https://api.ivao.aero";
@@ -77,6 +83,15 @@ namespace Booking
                 {
                     OnTokenValidated = async ctx =>
                     {
+                        var identity = ctx.Principal?.Identity as ClaimsIdentity;
+                        if (ctx.TokenEndpointResponse?.AccessToken is not null)
+                        {
+                            identity?.AddClaim(new Claim("access_token", ctx.TokenEndpointResponse.AccessToken));
+                        }
+                        if (ctx.TokenEndpointResponse?.RefreshToken is not null)
+                        {
+                            identity?.AddClaim(new Claim("refresh_token", ctx.TokenEndpointResponse.RefreshToken));
+                        }
                         await Task.CompletedTask;
                     }
                 };
@@ -87,7 +102,11 @@ namespace Booking
 
             builder.Services.AddScoped<IAdministratorService, DbAdministratorService>();
             builder.Services.AddScoped<IEventService, DbEventService>();
-            builder.Services.AddScoped<IEventAtcPosition, DbEventAtcPositionService>();
+            builder.Services.AddScoped<IEventAtcPositionService, DbEventAtcPositionService>();
+            builder.Services.AddScoped<IAtcPositionBookingService, DbAtcPositionBookingService>();
+            builder.Services.AddScoped<OidcConfigurationService>();
+            builder.Services.AddScoped<HttpClient>();
+            builder.Services.AddScoped<IvaoUserService>();
 
             // Register handler for Administrator protection
             builder.Services.AddScoped<IAuthorizationHandler, AdministratorAuthorizationHandler>();
@@ -107,6 +126,7 @@ namespace Booking
             }
 
             app.UseHttpsRedirection();
+            app.UseSerilogRequestLogging();
 
             app.UseAntiforgery();
 
@@ -118,6 +138,26 @@ namespace Booking
                 .AddInteractiveServerRenderMode()
                 .AddInteractiveWebAssemblyRenderMode()
                 .AddAdditionalAssemblies(typeof(Client._Imports).Assembly);
+
+            app.MapGet("/login", async context =>
+            {
+                await context.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties
+                {
+                    RedirectUri = "/" // Redirect to homepage after login
+                });
+            });
+            app.MapGet("/logout", async context =>
+            {
+                await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                await context.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties
+                {
+                    RedirectUri = "/" // Redirect after logout
+                });
+            });
+            app.MapGet("/accessdenied", async context =>
+            {
+                await context.Response.WriteAsync("Access Denied: You do not have permission to view this page.");
+            });
 
             app.Run();
         }

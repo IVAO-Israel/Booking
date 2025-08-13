@@ -9,11 +9,14 @@ namespace Booking.Data
     {
         [Key]
         public Guid Id { get; set; }
-        public required string Name { get; set; }
-        public required DateTime BeginTime { get; set; }
-        public required DateTime EndTime { get; set; }
+        [Required]
+        public string Name { get; set; } = default!;
+        [Required]
+        public DateTime BeginTime { get; set; }
+        [Required]
+        public DateTime EndTime { get; set; }
         public bool IsVisible { get; set; }
-        public required string Url { get; set; }
+        public string? Url { get; set; }
         public ICollection<EventAtcPosition>? AvailableAtcPositions { get; set; }
     }
 }

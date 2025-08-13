@@ -1,0 +1,45 @@
+﻿@page "/event/{EventUrl}/atc/positions"
+@using Booking.Data
+@using Booking.Services.Interfaces
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject BookingDbContext DbContext
+@inject IEventService EventService
+@inject IEventAtcPositionService EventAtcPositionService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+<PageTitle>Book ATC position</PageTitle>
+<h1 class="text-center">Book ATC position</h1>
+@if(Event is null)
+{
+	<div class="text-center"><div class="spinner-border"></div>Loading...</div>
+} else
+{
+	<PositionsTimeline Event="Event"/>
+}
+
+@code {
+	[Parameter]
+	public string EventUrl { get; set; } = default!;
+	private Event? Event;
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await Load();
+		}
+	}
+	private async Task Load()
+	{
+		Event = await EventService.GetEventByUrl(EventUrl);
+		if (Event is null)
+		{
+			NavigationManager.NavigateTo("events/upcoming");
+		}
+		else
+		{
+			await EventService.LoadAvailableAtcPositions(Event);
+		}
+		await InvokeAsync(StateHasChanged);
+	}
+}

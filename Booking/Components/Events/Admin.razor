@@ -1,0 +1,126 @@
+﻿@page "/events/admin"
+@using Booking.Extensions
+@using Microsoft.AspNetCore.Authorization
+@using Booking.Data
+@using Booking.Services.Interfaces
+@inject IEventService EventService
+@inject BookingDbContext DbContext
+@inject NavigationManager NavigationManager
+@attribute [Authorize(Policy = "Administrator")]
+@rendermode InteractiveServer
+<PageTitle>Upcoming events</PageTitle>
+<h1 class="text-center">Events</h1>
+@if(Events is null)
+{
+	<div class="text-center"><div class="spinner-border"></div>Loading...</div>
+} else
+{
+	<table class="table table-bordered table-hover">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Date</th>
+				<th>Time</th>
+				<th><button type="button" class="btn btn-success" @onclick="NewEvent">New event</button></th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach(Event e in Events)
+			{
+				<tr>
+					<td>@e.Name</td>
+					<td>@Date(e)</td>
+					<td>@Time(e)</td>
+					<td>
+						<div>
+							<button type="button" class="btn btn-primary" @onclick="()=>EditEvent(e)">Edit</button>
+							<button type="button" class="btn btn-danger" 
+								@onclick="()=>ShowConfirmDelete(e)">Delete</button>
+						</div>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+	<ConfirmModal @ref="ConfirmDelete" OnConfirm="async ()=> await DeleteEvent((Event?)ConfirmDelete?.Object)"/>
+	<EventModal @ref="Modal" OnAfterSubmit="UpdateUI"/>
+}
+
+@code {
+	private List<Event>? Events;
+	private ConfirmModal ConfirmDelete = default!;
+	private EventModal Modal = default!;
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await Load();
+		}
+	}
+	private async Task Load()
+	{
+		Events = (await EventService.GetAllEvents()).OrderBy(e => e.BeginTime).ToList();
+		foreach(Event e in Events)
+		{
+			await EventService.LoadAvailableAtcPositions(e);
+		}
+		await InvokeAsync(StateHasChanged);
+	}
+	private string Date(Event eventObj)
+	{
+		if(eventObj.BeginTime.Date == eventObj.BeginTime.Date)
+		{
+			return eventObj.BeginTime.ToDisplayDate();
+		} else
+		{
+			return $"{eventObj.BeginTime.ToDisplayDate()}-{eventObj.EndTime.ToDisplayDate()}";
+		}
+	}
+	private string Time(Event eventObj)
+	{
+		if (eventObj.BeginTime.Date == eventObj.BeginTime.Date)
+		{
+			return $"{eventObj.BeginTime.ToDisplayTime()}-{eventObj.EndTime.ToDisplayTime()}";
+		} else
+		{
+			return $"{eventObj.BeginTime.ToDisplayDate()} {eventObj.BeginTime.ToDisplayTime()}-{eventObj.EndTime.ToDisplayDate()} {eventObj.EndTime.ToDisplayTime()}";
+		}
+	}
+	private void ShowConfirmDelete(Event eventObj){
+		ConfirmDelete.Show("Delete event", $"Do you want to delete {eventObj.Name}?", eventObj);
+	}
+	private void EditEvent(Event eventObj)
+	{
+		Modal.Show(eventObj, false, false);
+	}
+	private void NewEvent()
+	{
+		Modal.Show(new(), true, false);
+	}
+	private async Task DeleteEvent(Event? eventObj)
+	{
+		if (eventObj is not null)
+		{
+			EventService.RemoveEvent(eventObj);
+			Events?.Remove(eventObj);
+			await DbContext.SaveChangesAsync();
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+	private void UpdateUI(Event eventObj, bool New)
+	{
+		if (New)
+		{
+			Events?.Add(eventObj);
+		}
+		else
+		{
+			int? index = Events?.FindIndex(e => e.Id == eventObj.Id);
+			if (index is int i && Events is not null)
+			{
+				Events[i] = eventObj;
+			}
+		}
+		StateHasChanged();
+	}
+}
