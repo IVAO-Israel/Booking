@@ -103,7 +103,6 @@ namespace Booking.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("Url")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");

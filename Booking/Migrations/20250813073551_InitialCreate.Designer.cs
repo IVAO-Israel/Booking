@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Booking.Migrations
 {
     [DbContext(typeof(BookingDbContext))]
-    [Migration("20250811142416_InitialCreate")]
+    [Migration("20250813073551_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -106,7 +106,6 @@ namespace Booking.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("Url")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
