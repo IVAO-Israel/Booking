@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Booking.Data
 @using Booking.Services.Interfaces
+@using Microsoft.AspNetCore.Components.QuickGrid
 @inject IEventService EventService
 @inject BookingDbContext DbContext
 @inject NavigationManager NavigationManager
@@ -15,33 +16,22 @@
 	<div class="text-center"><div class="spinner-border"></div>Loading...</div>
 } else
 {
-	<table class="table table-bordered table-hover">
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Date</th>
-				<th>Time</th>
-				<th><button type="button" class="btn btn-success" @onclick="NewEvent">New event</button></th>
-			</tr>
-		</thead>
-		<tbody>
-			@foreach(Event e in Events)
-			{
-				<tr>
-					<td>@e.Name</td>
-					<td>@Date(e)</td>
-					<td>@Time(e)</td>
-					<td>
-						<div>
-							<button type="button" class="btn btn-primary" @onclick="()=>EditEvent(e)">Edit</button>
-							<button type="button" class="btn btn-danger" 
-								@onclick="()=>ShowConfirmDelete(e)">Delete</button>
-						</div>
-					</td>
-				</tr>
-			}
-		</tbody>
-	</table>
+	<QuickGrid Items="Events.AsQueryable()" Class="table table-bordered table-hover">
+		<PropertyColumn Property="@(e => e.Name)" Title="Name" />
+		<PropertyColumn Property="@(e => Date(e))" Title="Date "/>
+		<PropertyColumn Property="@(e => Time(e))" Title="Time"/>
+		<TemplateColumn TGridItem="Event">
+			<HeaderTemplate>
+				<button type="button" class="btn btn-success" @onclick="NewEvent">New event</button>
+			</HeaderTemplate>
+			<ChildContent Context="e">
+				<div>
+					<button type="button" class="btn btn-primary" @onclick="() => EditEvent(e)">Edit</button>
+					<button type="button" class="btn btn-danger" @onclick="() => ShowConfirmDelete(e)">Delete</button>
+				</div>
+			</ChildContent>
+		</TemplateColumn>
+	</QuickGrid>
 	<ConfirmModal @ref="ConfirmDelete" OnConfirm="async ()=> await DeleteEvent((Event?)ConfirmDelete?.Object)"/>
 	<EventModal @ref="Modal" OnAfterSubmit="UpdateUI"/>
 }

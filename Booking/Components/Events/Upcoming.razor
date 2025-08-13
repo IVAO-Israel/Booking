@@ -4,6 +4,7 @@
 @using Booking.Data
 @using Booking.Services.Interfaces
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
 @inject IEventService EventService
 @inject BookingDbContext DbContext
 @inject NavigationManager NavigationManager
@@ -24,45 +25,38 @@
 	<div class="text-center">No upcoming events.</div>
 } else
 {
-	<table class="table table-bordered table-hover">
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Date</th>
-				<th>Time</th>
-				<th></th>
-			</tr>
-		</thead>
-		<tbody>
-			@foreach(Event e in Events)
-			{
-				<tr>
-					<td>@e.Name</td>
-					<td>@Date(e)</td>
-					<td>@Time(e)</td>
-					<td>
-						<div>
-							@if(e.AvailableAtcPositions is not null && e.AvailableAtcPositions.Any()){
-							<button class="btn btn-primary"
-									data-bs-toggle="tooltip"
-									data-bs-placement="top"
-									title="Book ATC position"
-									@onclick="()=>BookAtc(e)">&#x1F3A7;</button>
-							} else if(e.AvailableAtcPositions is not null)
-							{
-								//TODO: what if no ATC booking for event
-							}
-							<!--<button class="btn btn-primary" 
-									data-bs-toggle="tooltip" 
-									data-bs-placement="top"
-									title="Book flight"
-									@onclick="()=>BookFlight(e)">&#x2708;</button>-->
-						</div>
-					</td>
-				</tr>
-			}
-		</tbody>
-	</table>
+	<QuickGrid Items="Events.AsQueryable()" Class="table table-bordered table-hover">
+		<PropertyColumn Property="@(e => e.Name)" Title="Name" />
+		<PropertyColumn Property="@(e => Date(e))" Title="Date "/>
+		<PropertyColumn Property="@(e => Time(e))" Title="Time"/>
+		<TemplateColumn TGridItem="Event">
+			<HeaderTemplate>
+			</HeaderTemplate>
+			<ChildContent Context="e">
+				<div>
+					@if (e.AvailableAtcPositions is not null && e.AvailableAtcPositions.Any())
+					{
+						<button class="btn btn-primary"
+								data-bs-toggle="tooltip"
+								data-bs-placement="top"
+								title="Book ATC position"
+								@onclick="() => BookAtc(e)">
+							&#x1F3A7;
+						</button>
+					}
+					else if (e.AvailableAtcPositions is not null)
+					{
+						//TODO: what if no ATC booking for event
+					}
+					<!--<button class="btn btn-primary"
+							data-bs-toggle="tooltip"
+							data-bs-placement="top"
+							title="Book flight"
+							@onclick="()=>BookFlight(e)">&#x2708;</button>-->
+				</div>
+			</ChildContent>
+		</TemplateColumn>
+	</QuickGrid>
 }
 
 @code {
