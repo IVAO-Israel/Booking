@@ -23,5 +23,9 @@ namespace Booking.Tests.Services
         {
             _administrators.Remove(administrator);
         }
+        Task<List<Administrator>> IAdministratorService.GetAllAdministrators()
+        {
+            return Task.FromResult(_administrators);
+        }
     }
 }

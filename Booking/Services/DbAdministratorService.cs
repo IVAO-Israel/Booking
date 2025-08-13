@@ -33,5 +33,9 @@ namespace Booking.Services
                 _dbContext.Entry(administrator).State = EntityState.Modified;
             }
         }
+        async Task<List<Administrator>> IAdministratorService.GetAllAdministrators()
+        {
+            return await _dbContext.Administrators.AsNoTracking().ToListAsync();
+        }
     }
 }

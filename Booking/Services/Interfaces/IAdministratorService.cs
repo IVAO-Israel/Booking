@@ -8,5 +8,6 @@ namespace Booking.Services.Interfaces
         public Task<Administrator?> GetAdministrator(int IVAOUserId);
         public void UpdateAdministrator(Administrator administrator);
         public void RemoveAdministrator(Administrator administrator);
+        public Task<List<Administrator>> GetAllAdministrators();
     }
 }
