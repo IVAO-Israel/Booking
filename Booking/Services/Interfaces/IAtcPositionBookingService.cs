@@ -2,7 +2,7 @@
 
 namespace Booking.Services.Interfaces
 {
-    public interface IAtcPositionBooking
+    public interface IAtcPositionBookingService
     {
         public void AddAtcPositionBooking(AtcPositionBooking booking);
         public Task<List<AtcPositionBooking>> GetAtcPositionBookings(EventAtcPosition eventAtcPosition);

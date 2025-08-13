@@ -93,8 +93,8 @@ namespace Booking
 
             builder.Services.AddScoped<IAdministratorService, DbAdministratorService>();
             builder.Services.AddScoped<IEventService, DbEventService>();
-            builder.Services.AddScoped<IEventAtcPosition, DbEventAtcPositionService>();
-            builder.Services.AddScoped<IAtcPositionBooking, DbAtcPositionBookingService>();
+            builder.Services.AddScoped<IEventAtcPositionService, DbEventAtcPositionService>();
+            builder.Services.AddScoped<IAtcPositionBookingService, DbAtcPositionBookingService>();
 
             // Register handler for Administrator protection
             builder.Services.AddScoped<IAuthorizationHandler, AdministratorAuthorizationHandler>();

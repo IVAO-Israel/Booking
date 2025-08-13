@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Services
 {
-    public class DbAtcPositionBookingService (BookingDbContext dbContext, IEventAtcPositionService eventAtcPositionService) : IAtcPositionBooking
+    public class DbAtcPositionBookingService (BookingDbContext dbContext, IEventAtcPositionService eventAtcPositionService) : IAtcPositionBookingService
     {
         private readonly BookingDbContext _dbContext = dbContext;
         private readonly IEventAtcPositionService _eventAtcPositionService = eventAtcPositionService;
-        void IAtcPositionBooking.AddAtcPositionBooking(AtcPositionBooking booking)
+        void IAtcPositionBookingService.AddAtcPositionBooking(AtcPositionBooking booking)
         {
             _eventAtcPositionService.LoadBookings(booking.EventAtcPosition);
             if(booking.EventAtcPosition.Bookings is not null)
@@ -23,11 +23,11 @@ namespace Booking.Services
                 }
             }
         }
-        async Task<List<AtcPositionBooking>> IAtcPositionBooking.GetAtcPositionBookings(EventAtcPosition eventAtcPosition)
+        async Task<List<AtcPositionBooking>> IAtcPositionBookingService.GetAtcPositionBookings(EventAtcPosition eventAtcPosition)
         {
             return await _dbContext.BookedAtcPositions.Where(b => b.EventAtcPositionId == eventAtcPosition.Id).AsNoTracking().ToListAsync();
         }
-        void IAtcPositionBooking.RemoveAtcPositionBooking(AtcPositionBooking booking)
+        void IAtcPositionBookingService.RemoveAtcPositionBooking(AtcPositionBooking booking)
         {
             if(_dbContext.Entry(booking).State == EntityState.Added)
             {
@@ -37,7 +37,7 @@ namespace Booking.Services
                 _dbContext.Entry(booking).State = EntityState.Deleted;
             }
         }
-        void IAtcPositionBooking.UpdateAtcPositionBooking(AtcPositionBooking booking)
+        void IAtcPositionBookingService.UpdateAtcPositionBooking(AtcPositionBooking booking)
         {
             if (_dbContext.Entry(booking).State != EntityState.Added)
             {
