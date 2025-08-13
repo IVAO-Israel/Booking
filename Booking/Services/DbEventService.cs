@@ -43,15 +43,15 @@ namespace Booking.Services
         }
         async Task<List<Event>> IEventService.GetAllEvents()
         {
-            return await _dbContext.Events.ToListAsync();
+            return await _dbContext.Events.AsNoTracking().ToListAsync();
         }
         async Task<List<Event>> IEventService.GetUpcomingEvents()
         {
-            return await _dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible).ToListAsync();
+            return await _dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible).AsNoTracking().ToListAsync();
         }
         async Task<List<Event>> IEventService.GetUpcomingEventsForAtc()
         {
-            return await _dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible && e.AvailableAtcPositions != null && e.AvailableAtcPositions.Any()).ToListAsync();
+            return await _dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible && e.AvailableAtcPositions != null && e.AvailableAtcPositions.Any()).AsNoTracking().ToListAsync();
         }
     }
 }

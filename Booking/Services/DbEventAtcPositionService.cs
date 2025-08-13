@@ -29,7 +29,7 @@ namespace Booking.Services
         }
         async Task<List<EventAtcPosition>> IEventAtcPosition.GetEventAtcPositions(Event eventObj)
         {
-            return await _dbContext.EventAtcPositions.Where(p => p.EventId == eventObj.Id).ToListAsync();
+            return await _dbContext.EventAtcPositions.Where(p => p.EventId == eventObj.Id).AsNoTracking().ToListAsync();
         }
         void IEventAtcPosition.RemoveEventAtcPosition(EventAtcPosition position)
         {
