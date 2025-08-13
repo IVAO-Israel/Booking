@@ -1,12 +1,11 @@
 ﻿using System.Security.Claims;
-using Booking.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Newtonsoft.Json;
 
 namespace Booking.Services
 {
-    public class IvaoUserService (IAuthorizationService authorizationService, AuthenticationStateProvider authenticationStateProvider, OidcConfigurationService oidcConfigurationService, HttpClient httpClient)
+    public class IvaoUserService(IAuthorizationService authorizationService, AuthenticationStateProvider authenticationStateProvider, OidcConfigurationService oidcConfigurationService, HttpClient httpClient)
     {
         private readonly IAuthorizationService _authorizationService = authorizationService;
         private readonly AuthenticationStateProvider _authenticationStateProvider = authenticationStateProvider;
