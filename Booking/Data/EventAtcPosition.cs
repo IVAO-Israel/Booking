@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Booking.Extensions.Validation;
 
 namespace Booking.Data
 {
@@ -13,7 +14,11 @@ namespace Booking.Data
         public required Event Event { get; set; }
         public Guid AtcPositionId { get; set; }
         public AtcPosition AtcPosition { get; set; } = default!;
+        [DateTimeBefore(nameof(EndTime), ErrorMessage = "Begin time must be before end time.")]
+        [Required]
         public required DateTime BeginTime { get; set; }
+        [DateTimeAfter(nameof(BeginTime), ErrorMessage = "End time must be after begin time.")]
+        [Required]
         public required DateTime EndTime { get; set; }
         public int RequiredRating { get; set; }
         public ICollection<AtcPositionBooking>? Bookings { get; set; }
