@@ -1,7 +1,12 @@
 ﻿@using Booking.Data
 @using Booking.Extensions
 @using Booking.Services.Interfaces
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @inject IEventAtcPositionService EventAtcPositionService
+@inject IAuthorizationService AuthorizationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
 <script>
     // Initialize all tooltips on the page
@@ -13,31 +18,26 @@
     .gantt-container {
         margin-top: 32px;
     }
-
     .gantt-header, .gantt-row {
         display: flex;
         align-items: center;
         margin-bottom: 8px;
     }
-
     .gantt-label {
         width: 150px;
         text-align: right;
         margin-right: 10px;
         font-weight: bold;
     }
-
     .gantt-time-container, .gantt-bar-container {
         flex: 1;
         display: flex;
         position: relative;
         height: 30px;
     }
-
     .gantt-time-container {
         border-bottom: 1px solid #dee2e6;
     }
-
     .gantt-time-cell {
         position: absolute;
         text-align: center;
@@ -45,12 +45,10 @@
         font-size: 14px;
         line-height: 30px;
     }
-
     .gantt-bar-container {
         background: #D7D7DC;
         border-radius: 5px;
     }
-
     .gantt-bar {
         height: 100%;
         border-radius: 5px;
@@ -58,6 +56,8 @@
         top: 0;
         color: #FFFFFF;
         text-align: center;
+    }
+    .clickable{
         cursor: pointer;
     }
 </style>
@@ -84,23 +84,56 @@
             <div class="gantt-bar-container">
                 @foreach (var time in row.Free)
                 {
-                    <div class="gantt-bar bg-success"
+                    <div class="gantt-bar clickable bg-success"
                          style="@GetBarStyle(time)"
                          data-bs-toggle="tooltip"
                          data-bs-placement="top"
-                         title="@BookingTime(time)">
+                         title="@FreeBookingTime(time)"
+                         @onclick="()=>AddBooking(row.Position, time)">
                         Book now
                     </div>
                 }
+                @{
+                    if (IsAdmin)
+                    {
+                        foreach (var time in row.NoBooking)
+                        {
+                            <div class="gantt-bar clickable bg-warning"
+                            style="@GetBarStyle(time)"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="@NoBookingTime(time)"
+                            @onclick="()=>AddPosition(row.Position, time)">
+                                Not available for booking
+                            </div>
+                        }
+                    } else
+                    {
+                        foreach (var time in row.NoBooking)
+                        {
+                            <div class="gantt-bar bg-warning"
+                                 style="@GetBarStyle(time)"
+                                 data-bs-toggle="tooltip"
+                                 data-bs-placement="top"
+                                 title="@NoBookingTime(time)">
+                                Not available for booking
+                            </div>
+                        }
+                    }
+                }
                 @foreach (var booking in row.Bookings)
                 {
-                    <div class="gantt-bar bg-danger"
-                         style="@GetBarStyle(booking)"
-                         data-bs-toggle="tooltip"
-                         data-bs-placement="top"
-                         title="@BookingTime(booking)">
+                    if (IsAdmin || booking.IVAOUserId == CurrentIvaoUserId)
+                    {
+                        <div class="gantt-bar clickable bg-danger"
+                        style="@GetBarStyle(booking)"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="@BookingTime(booking)"
+                            @onclick="()=>EditBooking(booking)">
                         @booking.IVAOUserId
                     </div>
+                    }
                 }
             </div>
         </div>
@@ -113,26 +146,50 @@
     public Event Event { get; set; }
     private List<PositionTimeBooking> PositionTimesBookings = [];
     private double Step;
+    private bool IsAdmin = false;
+    private int CurrentIvaoUserId;
     protected override async Task OnInitializedAsync()
     {
+        IsAdmin = await GetIsAdmin();
+        CurrentIvaoUserId = await GetUserIvaoId();
         foreach (var position in Event.AvailableAtcPositions!)
         {
             await EventAtcPositionService.LoadBookings(position);
         }
-        PositionTimesBookings = Event.AvailableAtcPositions.GroupBy(p => p.AtcPosition)
-                        .Select(g => new PositionTimeBooking
-                        {
-                            Position = g.Key,
-                            Free = g.SelectMany(f => PositionTimeBooking.GetFreeIntervals(f)).ToList(),
-                            Bookings = g.SelectMany(b => b.Bookings!).OrderBy(b => b.BeginTime).ToList()
-                        }).ToList();
+        PositionTimesBookings = Event.AvailableAtcPositions
+        .GroupBy(p => p.AtcPosition)
+        .Select(g =>
+        {
+            var free = g.SelectMany(f => PositionTimeBooking.GetFreeIntervals(f)).ToList();
+            var bookings = g.SelectMany(b => b.Bookings!).Select(b => new PositionTimeBooking.TimeInterval
+            {
+                BeginTime = b.BeginTime,
+                EndTime = b.EndTime
+            }).ToList();
+
+            var noBooking = PositionTimeBooking.GetNoBookingIntervals(
+                Event,
+                free.Concat(bookings).ToList()
+            )
+            .OrderBy(n => n.BeginTime)
+            .ToList();
+
+            return new PositionTimeBooking
+            {
+                Position = g.Key,
+                Free = free,
+                Bookings = g.SelectMany(b => b.Bookings!).OrderBy(b => b.BeginTime).ToList(),
+                NoBooking = noBooking
+            };
+        })
+        .ToList();
         Step = 100 / (Event.EndTime - Event.BeginTime).TotalHours;
     }
     private double GetLeft(AtcPositionBooking booking)
     {
         return (booking.BeginTime - Event.BeginTime).TotalHours * Step;
     }
-    private double GetLeft(PositionTimeBooking.FreeTime time)
+    private double GetLeft(PositionTimeBooking.TimeInterval time)
     {
         return (time.BeginTime - Event.BeginTime).TotalHours * Step;
     }
@@ -140,7 +197,7 @@
     {
         return (booking.EndTime - booking.BeginTime).TotalHours * Step;
     }
-    private double GetWidth(PositionTimeBooking.FreeTime time)
+    private double GetWidth(PositionTimeBooking.TimeInterval time)
     {
         return (time.EndTime - time.BeginTime).TotalHours * Step;
     }
@@ -148,7 +205,7 @@
     {
         return $"left: {GetLeft(booking).ToString().Replace(',', '.')}%; width: {GetWidth(booking).ToString().Replace(',', '.')}%;";
     }
-    private string GetBarStyle(PositionTimeBooking.FreeTime time)
+    private string GetBarStyle(PositionTimeBooking.TimeInterval time)
     {
         return $"left: {GetLeft(time).ToString().Replace(',', '.')}%; width: {GetWidth(time).ToString().Replace(',', '.')}%;";
     }
@@ -156,23 +213,47 @@
     {
         return $"Booked from {booking.BeginTime.ToDisplayTime()} to {booking.EndTime.ToDisplayTime()}";
     }
-    private string BookingTime(PositionTimeBooking.FreeTime time)
+    private string FreeBookingTime(PositionTimeBooking.TimeInterval time)
     {
         return $"Free from {time.BeginTime.ToDisplayTime()} to {time.EndTime.ToDisplayTime()}";
+    }
+    private string NoBookingTime(PositionTimeBooking.TimeInterval time)
+    {
+        return $"Position not available from {time.BeginTime.ToDisplayTime()} to {time.EndTime.ToDisplayTime()}";
+    }
+    private async Task<bool> GetIsAdmin()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var result = await AuthorizationService.AuthorizeAsync(user, "Administrator");
+        return result.Succeeded;
+    }
+    private async Task<int> GetUserIvaoId()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var vid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if(vid is not null && int.TryParse(vid, out int ivaoid))
+        {
+            return ivaoid;
+        }
+        return 0;
     }
     private class PositionTimeBooking
     {
         public AtcPosition Position { get; set; } = default!;
-        public List<FreeTime> Free { get; set; } = [];
+        public List<TimeInterval> Free { get; set; } = [];
         public List<AtcPositionBooking> Bookings { get; set; } = [];
-        public class FreeTime
+        public List<TimeInterval> NoBooking { get; set; } = [];
+        public class TimeInterval
         {
             public DateTime BeginTime { get; set; }
             public DateTime EndTime { get; set; }
         }
-        public static List<FreeTime> GetFreeIntervals(EventAtcPosition position)
+        public static List<TimeInterval> GetFreeIntervals(EventAtcPosition position)
         {
-            var freeSlots = new List<FreeTime>();
+            var freeSlots = new List<TimeInterval>();
             if (position.Bookings == null || !position.Bookings.Any())
             {
                 freeSlots.Add(new()
@@ -214,5 +295,46 @@
             }
             return freeSlots;
         }
+        public static List<TimeInterval> GetNoBookingIntervals(Event Event, List<TimeInterval> toRemove)
+        {
+            var result = new List<TimeInterval> { new() { BeginTime = Event.BeginTime, EndTime = Event.EndTime } };
+            foreach (var r in toRemove.OrderBy(t => t.BeginTime))
+            {
+                var updated = new List<TimeInterval>();
+                foreach (var current in result)
+                {
+                    if (r.EndTime <= current.BeginTime || r.BeginTime >= current.EndTime)
+                    {
+                        // No overlap
+                        updated.Add(current);
+                    }
+                    else
+                    {
+                        // Left gap
+                        if (r.BeginTime > current.BeginTime){
+                            updated.Add(new TimeInterval { BeginTime = current.BeginTime, EndTime = r.BeginTime });
+                        }
+                        // Right gap
+                        if (r.EndTime < current.EndTime){
+                            updated.Add(new TimeInterval { BeginTime = r.EndTime, EndTime = current.EndTime });
+                        }
+                    }
+                }
+                result = updated;
+            }
+            return result;
+        }
+    }
+    private void AddPosition(AtcPosition position, PositionTimeBooking.TimeInterval time)
+    {
+        //TODO: Add position based on time
+    }
+    private void AddBooking(AtcPosition position, PositionTimeBooking.TimeInterval time)
+    {
+        //TODO: Add booking based on time
+    }
+    private void EditBooking (AtcPositionBooking booking)
+    {
+        //TODO: Edit booking
     }
 }
