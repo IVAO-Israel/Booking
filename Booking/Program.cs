@@ -34,7 +34,7 @@ namespace Booking
 
             // Add services to the container.
             builder.Services.AddRazorComponents()
-                .AddInteractiveServerComponents()
+                .AddInteractiveServerComponents(options => options.DetailedErrors = true)
                 .AddInteractiveWebAssemblyComponents();
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -83,6 +83,15 @@ namespace Booking
                 {
                     OnTokenValidated = async ctx =>
                     {
+                        var identity = ctx.Principal?.Identity as ClaimsIdentity;
+                        if (ctx.TokenEndpointResponse?.AccessToken is not null)
+                        {
+                            identity?.AddClaim(new Claim("access_token", ctx.TokenEndpointResponse.AccessToken));
+                        }
+                        if (ctx.TokenEndpointResponse?.RefreshToken is not null)
+                        {
+                            identity?.AddClaim(new Claim("refresh_token", ctx.TokenEndpointResponse.RefreshToken));
+                        }
                         await Task.CompletedTask;
                     }
                 };
@@ -95,6 +104,9 @@ namespace Booking
             builder.Services.AddScoped<IEventService, DbEventService>();
             builder.Services.AddScoped<IEventAtcPositionService, DbEventAtcPositionService>();
             builder.Services.AddScoped<IAtcPositionBookingService, DbAtcPositionBookingService>();
+            builder.Services.AddScoped<OidcConfigurationService>();
+            builder.Services.AddScoped<HttpClient>();
+            builder.Services.AddScoped<IvaoUserService>();
 
             // Register handler for Administrator protection
             builder.Services.AddScoped<IAuthorizationHandler, AdministratorAuthorizationHandler>();
