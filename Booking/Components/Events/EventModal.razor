@@ -1,0 +1,124 @@
+﻿@using Booking.Data
+@using Booking.Services.Interfaces
+@inject IEventService EventService
+@inject BookingDbContext DbContext
+@rendermode InteractiveServer
+@if (IsVisible && Event != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" aria-modal="true" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Event</h5>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="ShowConfirmCancel"></button>
+                </div>
+                <EditForm method="post" Model="Event" OnValidSubmit="OnValidSubmit" FormName="create" Enhance>
+                    <div class="modal-body">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary class="text-danger" role="alert" />
+                            <div class="row">
+                                <div class="col"><label for="name" class="form-label">Name</label></div>
+                            <div class="col"><InputText id="name" class="form-control" Value="@Event.Name" 
+                                ValueExpression="() => Event.Name" ValueChanged="EventNameChanged" /></div>
+                            </div>
+                        <div class="row">
+                            <div class="col"><label for="begintime" class="form-label">Begin time</label></div>
+                            <div class="col">
+                                <input type="datetime-local"
+                                       id="begintime"
+                                       class="form-control"
+                                       @bind-value="Event.BeginTime"
+                                       @bind-value:event="onchange" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col"><label for="endtime" class="form-label">End time</label></div>
+                            <div class="col">
+                                <input type="datetime-local"
+                                       id="begintime"
+                                       class="form-control"
+                                       @bind-value="Event.EndTime"
+                                       @bind-value:event="onchange" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col"><label for="isvisible" class="form-label">Event is visible</label></div>
+                            <div class="col"><InputSelect id="isvisible" class="form-control" @bind-Value="Event.IsVisible">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </InputSelect></div>
+                        </div>
+                        <div class="row">
+                            <div class="col"><label for="url" class="form-label">Url</label></div>
+                            <div class="col"><InputText id="url" class="form-control" @bind-Value="Event.Url"/></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" @onclick="ShowConfirmCancel">Cancel</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+    <ConfirmModal @ref="ConfirmCancel" OnConfirm="Cancel" />
+}
+
+@code {
+    private bool IsVisible { get; set; }
+    private ConfirmModal ConfirmCancel = default!;
+    [SupplyParameterFromForm]
+    private Event? Event  { get; set; }
+    private bool New { get; set; } = false;
+    private bool Readonly { get; set; } = false;
+    [Parameter]
+    public Action<Event, bool>? OnAfterSubmit { get; set; }
+    public void Show(Event Event, bool New = false, bool Readonly = false)
+    {
+        this.Event = Event;
+        this.New = New;
+        this.Readonly = Readonly;
+        IsVisible = true;
+        StateHasChanged();
+    }
+    private async Task OnValidSubmit()
+    {
+        IsVisible = false;
+        await InvokeAsync(StateHasChanged);
+        if (Event != null)
+        {
+            if (New)
+            {
+                EventService.AddEvent(Event);
+            }
+            else
+            {
+                EventService.UpdateEvent(Event);
+            }
+            await DbContext.SaveChangesAsync();
+            OnAfterSubmit?.Invoke(Event, New);
+        } else
+        {
+            throw new ArgumentNullException(nameof(Event));
+        }
+    }
+    private void Cancel()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+    private void ShowConfirmCancel()
+    {
+        ConfirmCancel.Show("Changes will not be saved", "Do you want to close without saving changes?");
+    }
+    private void EventNameChanged(string name)
+    {
+        if (Event is not null)
+        {
+            Event.Name = name;
+            Event.Url = name.ToLower().Replace(' ', '-');
+            StateHasChanged();
+        }
+    }
+}
