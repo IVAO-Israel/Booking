@@ -26,10 +26,26 @@
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" @onclick:preventDefault="true">Administration</a>
                     <ul class="dropdown-menu">
-                        <li><NavLink class="dropdown-item" href="events/all">Events</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="events/admin">Events</NavLink></li>
                     </ul>
                 </div>
             </Authorized>
+        </AuthorizeView>
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item">
+                    <NavLink class="nav-link" href="logout" Match="NavLinkMatch.All">
+                        Logout
+                    </NavLink>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="nav-item">
+                    <NavLink class="nav-link" href="login" Match="NavLinkMatch.All">
+                        Login
+                    </NavLink>
+                </div>
+            </NotAuthorized>
         </AuthorizeView>
     </nav>
 </div>
