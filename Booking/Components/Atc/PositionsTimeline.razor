@@ -2,8 +2,11 @@
 @using Booking.Extensions
 @using Booking.Services.Interfaces
 @using Booking.Services
+@using Microsoft.EntityFrameworkCore
 @inject IEventAtcPositionService EventAtcPositionService
+@inject IEventService EventService
 @inject IvaoUserService IvaoUserService
+@inject BookingDbContext DbContext
 @rendermode InteractiveServer
 <script>
     // Initialize all tooltips on the page
@@ -65,7 +68,7 @@
         <div class="gantt-time-container">
             @{
                 int i = 0;
-                for (DateTime dt = Event.BeginTime; dt <= Event.EndTime; dt = dt.AddHours(1))
+                for (DateTime dt = Event.BeginTime; dt < Event.EndTime; dt = dt.AddHours(1))
                 {
                     <div class="gantt-time-cell" style="left: @((Step*i).ToString().Replace(',','.'))%; width: @Step.ToString().Replace(',','.')%;">@dt.ToDisplayTime()</div>
                     i += 1;
@@ -108,12 +111,12 @@
                         foreach (var time in row.NoBooking)
                         {
                             <div class="gantt-bar clickable bg-warning"
-                            style="@GetBarStyle(time)"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title="@NoBookingTime(time)"
-                            @onclick="()=>AddPosition(row.Position, time)">
-                                Not available for booking
+                                 style="@GetBarStyle(time)"
+                                 data-bs-toggle="tooltip"
+                                 data-bs-placement="top"
+                                 title="@NoBookingTime(time)"
+                                 @onclick="()=>AddPosition(row.Position, time)">
+                                    Not available for booking
                             </div>
                         }
                     } else
@@ -125,7 +128,7 @@
                                  data-bs-toggle="tooltip"
                                  data-bs-placement="top"
                                  title="@NoBookingTime(time)">
-                                Not available for booking
+                                    Not available for booking
                             </div>
                         }
                     }
@@ -135,20 +138,20 @@
                     if (IsAdmin || booking.IVAOUserId == CurrentIvaoUserId)
                     {
                         <div class="gantt-bar clickable bg-danger"
-                        style="@GetBarStyle(booking)"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title="@BookingTime(booking)"
-                            @onclick="()=>EditBooking(booking)">
-                        @booking.IVAOUserId
+                             style="@GetBarStyle(booking)"
+                             data-bs-toggle="tooltip"
+                             data-bs-placement="top"
+                             title="@BookingTime(booking)"
+                             @onclick="()=>EditBooking(booking)">
+                                @booking.IVAOUserId
                     </div>
                     }
                 }
             </div>
         </div>
     }
-
 </div>
+<BookingModal @ref="BookingModal" CurrentIvaoUserAtcRating="CurrentIvaoUserAtcRating" OnAfterSubmitAsync="UpdateUI"/>
 
 @code {
     [Parameter, EditorRequired]
@@ -158,44 +161,49 @@
     private bool IsAdmin = false;
     private int CurrentIvaoUserId;
     private int CurrentIvaoUserAtcRating;
+    private BookingModal? BookingModal;
     protected override async Task OnInitializedAsync()
     {
         IsAdmin = await IvaoUserService.GetIsAdmin();
         CurrentIvaoUserId = await IvaoUserService.GetUserIvaoId();
         CurrentIvaoUserAtcRating = await IvaoUserService.GetUserAtcRating();
+        await Load();
+        Step = 100 / (Event.EndTime - Event.BeginTime).TotalHours;
+    }
+    private async Task Load()
+    {
         foreach (var position in Event.AvailableAtcPositions!)
         {
             await EventAtcPositionService.LoadBookings(position);
         }
-        PositionTimesBookings = Event.AvailableAtcPositions
-        .GroupBy(p => p.AtcPosition)
-        .Select(g =>
-        {
-            var free = g.SelectMany(f => PositionTimeBooking.GetFreeIntervals(f)
-            .Select(t => { t.EventAtcPosition = f; return t; })).ToList();
-            var bookings = g.SelectMany(b => b.Bookings!).Select(b => new PositionTimeBooking.BookingTimeInterval
+        PositionTimesBookings = Event.AvailableAtcPositions!
+            .GroupBy(p => p.AtcPosition)
+            .Select(g =>
             {
-                BeginTime = b.BeginTime,
-                EndTime = b.EndTime
-            }).ToList();
+                var free = g.SelectMany(f => PositionTimeBooking.GetFreeIntervals(f)
+                .Select(t => { t.EventAtcPosition = f; return t; })).ToList();
+                var bookings = g.SelectMany(b => b.Bookings!).Select(b => new PositionTimeBooking.BookingTimeInterval
+                {
+                    BeginTime = b.BeginTime,
+                    EndTime = b.EndTime
+                }).ToList();
 
-            var noBooking = PositionTimeBooking.GetNoBookingIntervals(
-                Event,
-                free.Concat(bookings).ToList()
-            )
-            .OrderBy(n => n.BeginTime)
+                var noBooking = PositionTimeBooking.GetNoBookingIntervals(
+                    Event,
+                    free.Concat(bookings).ToList()
+                )
+                .OrderBy(n => n.BeginTime)
+                .ToList();
+
+                return new PositionTimeBooking
+                {
+                    Position = g.Key,
+                    Free = free,
+                    Bookings = g.SelectMany(b => b.Bookings!).OrderBy(b => b.BeginTime).ToList(),
+                    NoBooking = noBooking
+                };
+            })
             .ToList();
-
-            return new PositionTimeBooking
-            {
-                Position = g.Key,
-                Free = free,
-                Bookings = g.SelectMany(b => b.Bookings!).OrderBy(b => b.BeginTime).ToList(),
-                NoBooking = noBooking
-            };
-        })
-        .ToList();
-        Step = 100 / (Event.EndTime - Event.BeginTime).TotalHours;
     }
     private double GetLeft(AtcPositionBooking booking)
     {
@@ -233,7 +241,7 @@
     {
         return $"Position not available from {time.BeginTime.ToDisplayTime()} to {time.EndTime.ToDisplayTime()}";
     }
-    private class PositionTimeBooking
+    public class PositionTimeBooking
     {
         public AtcPosition Position { get; set; } = default!;
         public List<BookingTimeInterval> Free { get; set; } = [];
@@ -325,10 +333,29 @@
     }
     private void AddBooking(AtcPosition position, PositionTimeBooking.BookingTimeInterval time)
     {
-        //TODO: Add booking based on time
+        BookingModal?.Show(new()
+        {
+            Id = Guid.NewGuid(),
+            EventAtcPosition = time.EventAtcPosition!,
+            BeginTime = time.BeginTime,
+            EndTime = time.EndTime,
+            IVAOUserId = CurrentIvaoUserId
+        }, true, false);
     }
     private void EditBooking (AtcPositionBooking booking)
     {
-        //TODO: Edit booking
+        BookingModal?.Show(booking, false, false);
+    }
+    private async Task UpdateUI(AtcPositionBooking booking, bool New, bool remove)
+    {
+        //TODO: handle UI update without reload
+        var newEvent = await EventService.GetEvent(Event.Id);
+        if (newEvent is not null)
+        {
+            Event = newEvent;
+            await EventService.LoadAvailableAtcPositions(Event);
+            await Load();
+        }
+        await InvokeAsync(StateHasChanged);
     }
 }
