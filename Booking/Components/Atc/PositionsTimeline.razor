@@ -111,12 +111,12 @@
                         foreach (var time in row.NoBooking)
                         {
                             <div class="gantt-bar clickable bg-warning"
-                            style="@GetBarStyle(time)"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title="@NoBookingTime(time)"
-                            @onclick="()=>AddPosition(row.Position, time)">
-                                Not available for booking
+                                 style="@GetBarStyle(time)"
+                                 data-bs-toggle="tooltip"
+                                 data-bs-placement="top"
+                                 title="@NoBookingTime(time)"
+                                 @onclick="()=>AddPosition(row.Position, time)">
+                                    Not available for booking
                             </div>
                         }
                     } else
@@ -128,7 +128,7 @@
                                  data-bs-toggle="tooltip"
                                  data-bs-placement="top"
                                  title="@NoBookingTime(time)">
-                                Not available for booking
+                                    Not available for booking
                             </div>
                         }
                     }
@@ -138,12 +138,12 @@
                     if (IsAdmin || booking.IVAOUserId == CurrentIvaoUserId)
                     {
                         <div class="gantt-bar clickable bg-danger"
-                        style="@GetBarStyle(booking)"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title="@BookingTime(booking)"
-                            @onclick="()=>EditBooking(booking)">
-                        @booking.IVAOUserId
+                             style="@GetBarStyle(booking)"
+                             data-bs-toggle="tooltip"
+                             data-bs-placement="top"
+                             title="@BookingTime(booking)"
+                             @onclick="()=>EditBooking(booking)">
+                                @booking.IVAOUserId
                     </div>
                     }
                 }
