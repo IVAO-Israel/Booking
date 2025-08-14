@@ -3,11 +3,11 @@ using Booking.Services.Interfaces;
 using Booking.Tests.Extensions;
 namespace Booking.Tests.Services
 {
-    internal class MockEventAtcPosition(IEventService eventService) : IEventAtcPosition
+    internal class MockEventAtcPosition(IEventService eventService) : IEventAtcPositionService
     {
         private readonly IEventService _eventService = eventService;
         private readonly List<EventAtcPosition> _positions = [];
-        void IEventAtcPosition.AddEventAtcPosition(EventAtcPosition position)
+        void IEventAtcPositionService.AddEventAtcPosition(EventAtcPosition position)
         {
             _eventService.LoadAvailableAtcPositions(position.Event);
             if (position.Event.AvailableAtcPositions is not null)
@@ -23,19 +23,19 @@ namespace Booking.Tests.Services
                 }
             }
         }
-        Task<EventAtcPosition?> IEventAtcPosition.GetEventAtcPosition(Guid id)
+        Task<EventAtcPosition?> IEventAtcPositionService.GetEventAtcPosition(Guid id)
         {
             return Task.FromResult(_positions.Where(p => p.Id == id).FirstOrDefault());
         }
-        Task<List<EventAtcPosition>> IEventAtcPosition.GetEventAtcPositions(Event eventObj)
+        Task<List<EventAtcPosition>> IEventAtcPositionService.GetEventAtcPositions(Event eventObj)
         {
             return Task.FromResult(_positions.Where(p => p.EventId == eventObj.Id).ToList());
         }
-        void IEventAtcPosition.RemoveEventAtcPosition(EventAtcPosition position)
+        void IEventAtcPositionService.RemoveEventAtcPosition(EventAtcPosition position)
         {
             _positions.Remove(position);
         }
-        void IEventAtcPosition.UpdateEventAtcPosition(EventAtcPosition position)
+        void IEventAtcPositionService.UpdateEventAtcPosition(EventAtcPosition position)
         {
             _positions.Update(position);
         }
