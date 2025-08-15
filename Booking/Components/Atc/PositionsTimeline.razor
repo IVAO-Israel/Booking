@@ -61,9 +61,12 @@
         cursor: pointer;
     }
 </style>
-<div>
-    <button type="button" class="btn btn-success">New position</button>
-</div>
+@if (IsAdmin){
+    <div>
+
+        <button type="button" class="btn btn-success" @onclick="AddPosition">New position</button>
+    </div>
+}
 <div class="gantt-container">
     <!-- Header Row -->
     <div class="gantt-header">
@@ -83,7 +86,12 @@
     @foreach (var row in PositionTimesBookings)
     {
         <div class="gantt-row">
-            <div class="gantt-label">@row.Position.Name</div>
+            @if (IsAdmin)
+            {
+                <div class="gantt-label clickable" @onclick="()=>EditPosition(row.Position)">@row.Position.Name</div>
+            } else {
+                <div class="gantt-label">@row.Position.Name</div>
+            }
             <div class="gantt-bar-container">
                 @foreach (var time in row.Free)
                 {
@@ -154,7 +162,8 @@
         </div>
     }
 </div>
-<BookingModal @ref="BookingModal" CurrentIvaoUserAtcRating="CurrentIvaoUserAtcRating" OnAfterSubmitAsync="UpdateUI"/>
+<BookingModal @ref="BookingModal" CurrentIvaoUserAtcRating="CurrentIvaoUserAtcRating" OnAfterSubmitAsync="UpdateUIBooking"/>
+<PositionModal @ref="PositionModal" OnAfterSubmitAsync="UpdateUIPositions"/>
 
 @code {
     [Parameter, EditorRequired]
@@ -165,6 +174,7 @@
     private int CurrentIvaoUserId;
     private int CurrentIvaoUserAtcRating;
     private BookingModal? BookingModal;
+    private PositionModal? PositionModal;
     protected override async Task OnInitializedAsync()
     {
         IsAdmin = await IvaoUserService.GetIsAdmin();
@@ -333,10 +343,39 @@
     private void AddPosition(AtcPosition position, PositionTimeBooking.BookingTimeInterval time)
     {
         //TODO: Add position based on time
+        PositionModal?.Show(new EventAtcPosition()
+        {
+            Id = Guid.NewGuid(),
+            Event = Event,
+            BeginTime = time.BeginTime,
+            EndTime = time.EndTime,
+            AtcPosition = position,
+            AtcPositionId = position.Id
+        }, true, false);
     }
     private void AddPosition()
     {
-        //TODO: Show modal to add position
+        PositionModal?.Show(new EventAtcPosition()
+        {
+            Id= Guid.NewGuid(),
+            Event = Event,
+            BeginTime = Event.BeginTime,
+            EndTime = Event.EndTime,
+        }, true, false);
+    }
+    private void EditPosition(AtcPosition position)
+    {
+        var positions = Event.AvailableAtcPositions!.Where(a => a.AtcPosition.Id == position.Id).ToList();
+        if(positions.Count == 1)
+        {
+            PositionModal?.Show(positions.First(), false, false);
+        } else if (positions.Count > 1)
+        {
+            //TODO: choose which to edit or edit all??
+        } else
+        {
+            throw new ArgumentException("Position doesn't exist.");
+        }
     }
     private void AddBooking(AtcPosition position, PositionTimeBooking.BookingTimeInterval time)
     {
@@ -353,7 +392,19 @@
     {
         BookingModal?.Show(booking, false, false);
     }
-    private async Task UpdateUI(AtcPositionBooking booking, bool New, bool remove)
+    private async Task UpdateUIBooking(AtcPositionBooking booking, bool New, bool remove)
+    {
+        //TODO: handle UI update without reload
+        var newEvent = await EventService.GetEvent(Event.Id);
+        if (newEvent is not null)
+        {
+            Event = newEvent;
+            await EventService.LoadAvailableAtcPositions(Event);
+            await Load();
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task UpdateUIPositions(EventAtcPosition position, bool New, bool remove)
     {
         //TODO: handle UI update without reload
         var newEvent = await EventService.GetEvent(Event.Id);
