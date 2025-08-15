@@ -7,9 +7,10 @@ namespace Booking.Tests.Services
     internal class MockEventService : IEventService
     {
         private readonly List<Event> _events = [];
-        void IEventService.AddEvent(Event eventObj)
+        Task IEventService.AddEvent(Event eventObj)
         {
             _events.Add(eventObj);
+            return Task.CompletedTask;
         }
         Task<Event?> IEventService.GetEvent(Guid id)
         {
@@ -27,13 +28,15 @@ namespace Booking.Tests.Services
             }
             return Task.CompletedTask;
         }
-        void IEventService.RemoveEvent(Event eventObj)
+        Task IEventService.RemoveEvent(Event eventObj)
         {
             _events.Remove(eventObj);
+            return Task.CompletedTask;
         }
-        void IEventService.UpdateEvent(Event eventObj)
+        Task IEventService.UpdateEvent(Event eventObj)
         {
             _events.Update(eventObj);
+            return Task.CompletedTask;
         }
         Task<List<Event>> IEventService.GetAllEvents()
         {
