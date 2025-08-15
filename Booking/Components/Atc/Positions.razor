@@ -1,17 +1,25 @@
 ﻿@page "/events/{EventUrl}/atc/positions"
 @using Booking.Data
+@using Booking.Services
 @using Booking.Services.Interfaces
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @inject IEventService EventService
 @inject IEventAtcPositionService EventAtcPositionService
 @inject NavigationManager NavigationManager
+@inject IvaoUserService IvaoUserService
+@inject IConfiguration Configuration
 @rendermode InteractiveServer
 <PageTitle>Book ATC position</PageTitle>
 <h1 class="text-center">Book ATC position</h1>
 @if(Event is null)
 {
 	<div class="text-center"><div class="spinner-border"></div>Loading...</div>
+} else if (!IsAllowed && !IsAdmin)
+{
+	<div class="alert alert-danger text-center">
+		Only memebers of @DivisionId or members holding GCA are allowed to book ATC positions.
+	</div>
 } else
 {
 	<PositionsTimeline Event="Event"/>
@@ -21,6 +29,17 @@
 	[Parameter]
 	public string EventUrl { get; set; } = default!;
 	private Event? Event;
+	private string DivisionId = "unknown";
+	private bool IsAllowed = false;
+	private bool IsAdmin = false;
+	protected override void OnInitialized()
+	{
+		var divId = Configuration["DivisionId"]?.ToString().ToUpper();
+		if(divId is not null)
+		{
+			DivisionId = divId;
+		}
+	}
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (firstRender)
@@ -30,6 +49,12 @@
 	}
 	private async Task Load()
 	{
+		IsAdmin = await IvaoUserService.GetIsAdmin();
+		string userDivId = await IvaoUserService.GetUserDivisionId();
+		if (userDivId.Equals(DivisionId, StringComparison.OrdinalIgnoreCase) || await IvaoUserService.UserHasGca())
+		{
+			IsAllowed = true;
+		}
 		Event = await EventService.GetEventByUrl(EventUrl);
 		if (Event is null)
 		{

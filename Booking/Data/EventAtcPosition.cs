@@ -44,7 +44,7 @@ namespace Booking.Data
             }
             return Event.AvailableAtcPositions.Where(p => p.AtcPositionId == AtcPositionId)
                                        .Where(p => BeginTime < p.EndTime && p.BeginTime < EndTime)
-                                       .Where(p=>p.Id != Id).Any();
+                                       .Where(p => p.Id != Id).Any();
         }
     }
 }

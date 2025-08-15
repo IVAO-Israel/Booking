@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Booking.Data;
+﻿using Booking.Data;
 using Booking.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,4 +1,3 @@
-using System;
 using System.Security.Claims;
 using Booking.Authorization;
 using Booking.Components;
@@ -21,7 +20,7 @@ namespace Booking
         {
             var builder = WebApplication.CreateBuilder(args);
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Information() // Log Information and above
+                .MinimumLevel.Warning() // Log Warnings and above
                 .WriteTo.File(
                     path: Path.Combine(AppContext.BaseDirectory, "Logs", "log-.txt"),
                     rollingInterval: RollingInterval.Day,      // New file each day
@@ -139,12 +138,18 @@ namespace Booking
                 .AddInteractiveServerRenderMode()
                 .AddInteractiveWebAssemblyRenderMode()
                 .AddAdditionalAssemblies(typeof(Client._Imports).Assembly);
-
+            ;
             app.MapGet("/login", async context =>
             {
+                var returnUrl = context.Request.Query["returnUrl"].FirstOrDefault() ?? "/";
+
+                if (!returnUrl.StartsWith('/'))
+                {
+                    returnUrl = "/";
+                }
                 await context.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties
                 {
-                    RedirectUri = "/" // Redirect to homepage after login
+                    RedirectUri = returnUrl
                 });
             });
             app.MapGet("/logout", async context =>
