@@ -15,10 +15,14 @@ namespace Booking.Data
         private void CreateRelations(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<EventAtcPosition>().HasOne(p => p.Event).WithMany(p => p.AvailableAtcPositions)
-                                                   .HasForeignKey(p => p.EventId);
-            modelBuilder.Entity<EventAtcPosition>().HasOne(p => p.AtcPosition).WithMany().HasForeignKey(p => p.AtcPositionId);
+                                                   .HasForeignKey(p => p.EventId)
+                                                   .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<EventAtcPosition>().HasOne(p => p.AtcPosition).WithMany()
+                                                   .HasForeignKey(p => p.AtcPositionId)
+                                                   .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<AtcPositionBooking>().HasOne(p => p.EventAtcPosition).WithMany(p => p.Bookings)
-                                                     .HasForeignKey(p => p.EventAtcPositionId);
+                                                     .HasForeignKey(p => p.EventAtcPositionId)
+                                                     .OnDelete(DeleteBehavior.Cascade);
         }
         public DbSet<Event> Events { get; set; }
         public DbSet<AtcPosition> AtcPositions { get; set; }
