@@ -1,4 +1,3 @@
-using System;
 using System.Security.Claims;
 using Booking.Authorization;
 using Booking.Components;
@@ -139,7 +138,7 @@ namespace Booking
                 .AddInteractiveServerRenderMode()
                 .AddInteractiveWebAssemblyRenderMode()
                 .AddAdditionalAssemblies(typeof(Client._Imports).Assembly);
-;
+            ;
             app.MapGet("/login", async context =>
             {
                 var returnUrl = context.Request.Query["returnUrl"].FirstOrDefault() ?? "/";
