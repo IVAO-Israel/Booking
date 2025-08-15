@@ -17,14 +17,7 @@ namespace Booking.Services
         async Task IAdministratorService.RemoveAdministrator(Administrator administrator)
         {
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            if (dbContext.Entry(administrator).State == EntityState.Added)
-            {
-                dbContext.Entry(administrator).State = EntityState.Detached;
-            }
-            else
-            {
-                dbContext.Entry(administrator).State = EntityState.Deleted;
-            }
+            dbContext.Entry(administrator).State = EntityState.Deleted;
             await dbContext.SaveChangesAsync();
         }
         async Task<Administrator?> IAdministratorService.GetAdministrator(int IVAOUserId)
@@ -35,10 +28,7 @@ namespace Booking.Services
         async Task IAdministratorService.UpdateAdministrator(Administrator administrator)
         {
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            if (dbContext.Entry(administrator).State != EntityState.Added)
-            {
-                dbContext.Entry(administrator).State = EntityState.Modified;
-            }
+            dbContext.Entry(administrator).State = EntityState.Modified;
             await dbContext.SaveChangesAsync();
         }
         async Task<List<Administrator>> IAdministratorService.GetAllAdministrators()
