@@ -1,0 +1,187 @@
+﻿@using Booking.Data
+@using Booking.Services.Interfaces
+@using System.Reflection
+@using Microsoft.AspNetCore.Authorization
+@inject IEventAtcPositionService EventAtcPositionService
+@inject IAtcPositionService AtcPositionService
+@attribute [Authorize (Policy="Administrator")]
+@rendermode InteractiveServer
+@if (IsVisible && Position != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" aria-modal="true" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">ATC booking position</h5>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="ShowConfirmCancel"></button>
+                </div>
+                <EditForm EditContext="editContext" method="post" OnValidSubmit="OnValidSubmit" FormName="create" Enhance>
+                    <div class="modal-body">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" role="alert" />
+                        <div class="row">
+                            <div class="col"><label for="event" class="form-label">Event</label></div>
+                            <div class="col"><InputText id="event" @bind-Value="Position.Event.Name" class="form-control" readonly/></div>
+                        </div>
+                        <div class="row">
+                            <div class="col"><label for="position" class="form-label">Position</label></div>
+                            <div class="col">
+                                <InputSelect id="position"
+                                             Value="@Position.AtcPositionId"
+                                             ValueExpression="() => Position.AtcPositionId"
+                                             ValueChanged="(Guid newValue) => AtcPositionChanged(newValue)"
+                                             class="form-control">
+                                    @foreach (var pos in positions)
+                                    {
+                                        <option value="@pos.Id">@pos.ToString()</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col"><label for="begintime" class="form-label">Begin time</label></div>
+                            <div class="col">
+                                <input type="datetime-local"
+                                       id="begintime"
+                                       class="form-control"
+                                       @bind-value="Position.BeginTime"
+                                       @bind-value:event="onchange" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col"><label for="endtime" class="form-label">End time</label></div>
+                            <div class="col">
+                                <input type="datetime-local"
+                                       id="begintime"
+                                       class="form-control"
+                                       @bind-value="Position.EndTime"
+                                       @bind-value:event="onchange" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col"><label for="rating" class="form-label">Required rating</label></div>
+                            <div class="col">
+                                <InputSelect id="rating" @bind-Value="@Position.RequiredRating" class="form-control">
+                                    @foreach(var rating in ratings)
+                                    {
+                                        <option value="@rating.Item2">@rating.Item1</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" @onclick="ShowConfirmCancel">Cancel</button>
+                        @if (!New)
+                        {
+                            <button type="button" class="btn btn-danger" @onclick="Remove">Remove position</button>
+                        }
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+    <ConfirmModal @ref="ConfirmCancel" OnConfirm="Cancel" />
+}
+
+@code {
+    private bool IsVisible { get; set; }
+    private ConfirmModal ConfirmCancel = default!;
+    [SupplyParameterFromForm]
+    private EventAtcPosition? Position { get; set; }
+    [Parameter]
+    public int CurrentIvaoUserAtcRating { get; set; }
+    private bool New { get; set; } = false;
+    private bool Readonly { get; set; } = false;
+    [Parameter]
+    public Func<EventAtcPosition, bool, bool, Task>? OnAfterSubmitAsync { get; set; }
+    private EditContext editContext = default!;
+    private ValidationMessageStore messageStore = default!;
+    private List<AtcPosition> positions = [];
+    private List<(string, int)> ratings = [];
+    protected override async Task OnInitializedAsync()
+    {
+        positions = await AtcPositionService.GetAllAtcPositions();
+        var fields = typeof(AtcRating).GetFields(BindingFlags.Public | BindingFlags.Static);
+        foreach(var field in fields)
+        {
+            ratings.Add((field.Name, (int)field.GetRawConstantValue()!));
+        }
+    }
+    public void Show(EventAtcPosition position, bool New = false, bool Readonly = false)
+    {
+        Position = position;
+        this.New = New;
+        this.Readonly = Readonly;
+        editContext = new EditContext(Position);
+        messageStore = new ValidationMessageStore(editContext);
+        editContext.OnValidationRequested += (sender, args) =>
+            {
+                messageStore.Clear();
+                if (Position is not null && Position.HasOverlap())
+                {
+                    messageStore.Add(editContext.Field(string.Empty), "Position is overlapping.");
+                }
+                editContext.NotifyValidationStateChanged();
+            };
+        IsVisible = true;
+        StateHasChanged();
+    }
+    private async Task OnValidSubmit()
+    {
+        IsVisible = false;
+        await InvokeAsync(StateHasChanged);
+        if (Position != null)
+        {
+            if (New)
+            {
+                await EventAtcPositionService.AddEventAtcPosition(Position);
+            }
+            else
+            {
+                await EventAtcPositionService.UpdateEventAtcPosition(Position);
+            }
+            if (OnAfterSubmitAsync is not null)
+            {
+                await OnAfterSubmitAsync.Invoke(Position, New, false);
+            }
+        } else
+        {
+            throw new ArgumentNullException(nameof(Position));
+        }
+    }
+    private async Task Remove()
+    {
+        IsVisible = false;
+        await InvokeAsync(StateHasChanged);
+        if(Position != null)
+        {
+            await EventAtcPositionService.RemoveEventAtcPosition(Position);
+            if (OnAfterSubmitAsync is not null)
+            {
+                await OnAfterSubmitAsync.Invoke(Position, New, true);
+            }
+        } else
+        {
+            throw new ArgumentNullException(nameof(Position));
+        }
+    }
+    private void Cancel()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+    private void ShowConfirmCancel()
+    {
+        ConfirmCancel.Show("Changes will not be saved", "Do you want to close without saving changes?");
+    }
+    private void AtcPositionChanged(Guid id){
+        if (Position is not null)
+        {
+            Position.AtcPosition = positions.Where(a => a.Id == id).First();
+            Position.AtcPositionId = id;
+        }
+    }
+}
