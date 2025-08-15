@@ -26,7 +26,7 @@ namespace Booking.Services
         async Task<AtcPosition?> IAtcPositionService.GetAtcPosition(string IVAOCallsign)
         {
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.AtcPositions.Where(a => a.IVAOCallsign == IVAOCallsign).FirstOrDefaultAsync();
+            return await dbContext.AtcPositions.Where(a => a.IVAOCallsign == IVAOCallsign).AsNoTracking().FirstOrDefaultAsync();
         }
         async Task IAtcPositionService.RemoveAtcPosition(AtcPosition position)
         {
