@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Services
 {
-    public class DbAtcPositionService (IDbContextFactory<BookingDbContext> factory) : IAtcPositionService
+    public class DbAtcPositionService(IDbContextFactory<BookingDbContext> factory) : IAtcPositionService
     {
         private readonly IDbContextFactory<BookingDbContext> _factory = factory;
         async Task IAtcPositionService.AddAtcPosition(AtcPosition position)
