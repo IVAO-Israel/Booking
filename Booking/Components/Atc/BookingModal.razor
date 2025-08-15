@@ -45,7 +45,7 @@
                         </div>
                         <div class="row">
                             <div class="col"><label for="ivaouserid" class="form-label">User VID</label></div>
-                            <div class="col"><InputNumber id="ivaouserid" @bind-Value="Booking.IVAOUserId" class="form-control" readonly/></div>
+                            <div class="col"><InputNumber id="ivaouserid" @bind-Value="Booking.IVAOUserId" class="form-control" readonly="@(!IsAdmin)"/></div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -73,6 +73,8 @@
     private AtcPositionBooking? Booking { get; set; }
     [Parameter]
     public int CurrentIvaoUserAtcRating { get; set; }
+    [Parameter]
+    public bool IsAdmin { get; set; } = false;
     private bool New { get; set; } = false;
     private bool Readonly { get; set; } = false;
     [Parameter]
