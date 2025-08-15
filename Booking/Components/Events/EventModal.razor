@@ -1,7 +1,6 @@
 ﻿@using Booking.Data
 @using Booking.Services.Interfaces
 @inject IEventService EventService
-@inject BookingDbContext DbContext
 @rendermode InteractiveServer
 @if (IsVisible && Event != null)
 {
@@ -92,7 +91,7 @@
         {
             if (New)
             {
-                EventService.AddEvent(Event);
+                await EventService.AddEvent(Event);
             }
             else
             {
@@ -100,9 +99,8 @@
                 {
                     Event.Url = null;
                 }
-                EventService.UpdateEvent(Event);
+                await EventService.UpdateEvent(Event);
             }
-            await DbContext.SaveChangesAsync();
             OnAfterSubmit?.Invoke(Event, New);
         } else
         {
