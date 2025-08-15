@@ -1,5 +1,6 @@
 ﻿using Booking.Data;
 using Booking.Services.Interfaces;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Services
@@ -21,7 +22,11 @@ namespace Booking.Services
         }
         async Task IEventService.LoadAvailableAtcPositions(Event eventObj)
         {
-            _dbContext.Entry(eventObj).State = EntityState.Unchanged;
+            if (_dbContext.ChangeTracker.Entries<Event>().Where(e => e.Entity.Id == eventObj.Id).FirstOrDefault() is null)
+            {
+                //Not already tracked to prevent exception
+                _dbContext.Entry(eventObj).State = EntityState.Unchanged;
+            }
             await _dbContext.Entry(eventObj).Collection(e => e.AvailableAtcPositions!).Query()
                     .Include(p => p.AtcPosition).LoadAsync();
             _dbContext.Entry(eventObj).State = EntityState.Detached;
