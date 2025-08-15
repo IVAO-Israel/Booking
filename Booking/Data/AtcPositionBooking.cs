@@ -30,8 +30,6 @@ namespace Booking.Data
             {
                 throw new ArgumentNullException(nameof(EventAtcPosition.Bookings));
             }
-            //Overlap only if any other bookings ends before this starts or other starts before this ends
-            //If one starts at the same time as other ends, it's not overlap
             return EventAtcPosition.Bookings.Where(b => BeginTime < b.EndTime && b.BeginTime < EndTime).Any();
         }
     }
