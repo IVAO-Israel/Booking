@@ -22,7 +22,7 @@ namespace Booking.Tests
                 Url = "new-event"
             };
             //Act
-            service.AddEvent(e);
+            await service.AddEvent(e);
             var result = await service.GetEvent(id);
 
             //Assert
@@ -56,7 +56,7 @@ namespace Booking.Tests
                 IsVisible = true,
                 Url = "new-event"
             };
-            service.AddEvent(e);
+            await service.AddEvent(e);
 
             //Act
             var result = await service.GetEvent(id);
@@ -80,11 +80,11 @@ namespace Booking.Tests
                 IsVisible = true,
                 Url = "new-event"
             };
-            service.AddEvent(e);
+            await service.AddEvent(e);
 
             //Act
             e.Name = "New event name";
-            service.UpdateEvent(e);
+            await service.UpdateEvent(e);
             var result = await service.GetEvent(id);
 
             //Assert
@@ -106,10 +106,10 @@ namespace Booking.Tests
                 IsVisible = true,
                 Url = "new-event"
             };
-            service.AddEvent(e);
+            await service.AddEvent(e);
 
             //Act
-            service.RemoveEvent(e);
+            await service.RemoveEvent(e);
             var result = await service.GetEvent(id);
 
             //Assert
@@ -130,7 +130,7 @@ namespace Booking.Tests
                 IsVisible = true,
                 Url = "new-event"
             };
-            service.AddEvent(e);
+            await service.AddEvent(e);
 
             //Act
             var result = await service.GetEvent(id);
@@ -154,10 +154,10 @@ namespace Booking.Tests
                 IsVisible = true,
                 Url = "new-event"
             };
-            service.AddEvent(e);
+            await service.AddEvent(e);
 
             //Act
-            service.LoadAvailableAtcPositions(e);
+            await service.LoadAvailableAtcPositions(e);
             var result = await service.GetEvent(id);
 
             //Assert
@@ -169,7 +169,7 @@ namespace Booking.Tests
         {
             //Arrange
             IEventService service = new MockEventService();
-            service.AddEvent(new()
+            await service.AddEvent(new()
             {
                 Id = Guid.NewGuid(),
                 Name = "New event",
@@ -178,7 +178,7 @@ namespace Booking.Tests
                 IsVisible = true,
                 Url = "new-event"
             });
-            service.AddEvent(new()
+            await service.AddEvent(new()
             {
                 Id = Guid.NewGuid(),
                 Name = "New event1",
@@ -199,7 +199,7 @@ namespace Booking.Tests
         {
             //Arrange
             IEventService service = new MockEventService();
-            service.AddEvent(new()
+            await service.AddEvent(new()
             {
                 Id = Guid.NewGuid(),
                 Name = "New event",
@@ -208,7 +208,7 @@ namespace Booking.Tests
                 IsVisible = true,
                 Url = "new-event"
             });
-            service.AddEvent(new()
+            await service.AddEvent(new()
             {
                 Id = Guid.NewGuid(),
                 Name = "New event1",
@@ -240,7 +240,7 @@ namespace Booking.Tests
                 Url = "new-event",
                 AvailableAtcPositions = positions
             };
-            service.AddEvent(e);
+            await service.AddEvent(e);
             positions.Add(new EventAtcPosition()
             {
                 EventId = e.Id,
@@ -248,7 +248,7 @@ namespace Booking.Tests
                 BeginTime = DateTime.UtcNow.AddHours(5),
                 EndTime = DateTime.UtcNow.AddDays(1)
             });
-            service.AddEvent(new()
+            await service.AddEvent(new()
             {
                 Id = Guid.NewGuid(),
                 Name = "New event1",
