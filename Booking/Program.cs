@@ -139,12 +139,18 @@ namespace Booking
                 .AddInteractiveServerRenderMode()
                 .AddInteractiveWebAssemblyRenderMode()
                 .AddAdditionalAssemblies(typeof(Client._Imports).Assembly);
-
+;
             app.MapGet("/login", async context =>
             {
+                var returnUrl = context.Request.Query["returnUrl"].FirstOrDefault() ?? "/";
+
+                if (!returnUrl.StartsWith('/'))
+                {
+                    returnUrl = "/";
+                }
                 await context.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties
                 {
-                    RedirectUri = "/" // Redirect to homepage after login
+                    RedirectUri = returnUrl
                 });
             });
             app.MapGet("/logout", async context =>
