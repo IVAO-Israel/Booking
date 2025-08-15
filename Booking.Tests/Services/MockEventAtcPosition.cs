@@ -7,9 +7,9 @@ namespace Booking.Tests.Services
     {
         private readonly IEventService _eventService = eventService;
         private readonly List<EventAtcPosition> _positions = [];
-        void IEventAtcPositionService.AddEventAtcPosition(EventAtcPosition position)
+        async Task IEventAtcPositionService.AddEventAtcPosition(EventAtcPosition position)
         {
-            _eventService.LoadAvailableAtcPositions(position.Event);
+            await _eventService.LoadAvailableAtcPositions(position.Event);
             if (position.Event.AvailableAtcPositions is not null)
             {
                 if (!position.HasOverlap())
@@ -31,13 +31,19 @@ namespace Booking.Tests.Services
         {
             return Task.FromResult(_positions.Where(p => p.EventId == eventObj.Id).ToList());
         }
-        void IEventAtcPositionService.RemoveEventAtcPosition(EventAtcPosition position)
+        Task IEventAtcPositionService.LoadBookings(EventAtcPosition position)
+        {
+            throw new NotImplementedException();
+        }
+        Task IEventAtcPositionService.RemoveEventAtcPosition(EventAtcPosition position)
         {
             _positions.Remove(position);
+            return Task.CompletedTask;
         }
-        void IEventAtcPositionService.UpdateEventAtcPosition(EventAtcPosition position)
+        Task IEventAtcPositionService.UpdateEventAtcPosition(EventAtcPosition position)
         {
             _positions.Update(position);
+            return Task.CompletedTask;
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Security.Claims;
 using Booking.Authorization;
 using Booking.Components;
@@ -38,8 +39,7 @@ namespace Booking
                 .AddInteractiveWebAssemblyComponents();
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-            builder.Services.AddDbContext<BookingDbContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
-
+            builder.Services.AddDbContextFactory<BookingDbContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
             // Authentication setup
             builder.Services.AddAuthentication(options =>
             {

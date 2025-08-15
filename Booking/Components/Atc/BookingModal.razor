@@ -1,7 +1,6 @@
 ﻿@using Booking.Data
 @using Booking.Services.Interfaces
 @inject IAtcPositionBookingService AtcPositionBookingService
-@inject BookingDbContext DbContext
 @rendermode InteractiveServer
 @if (IsVisible && Booking != null)
 {
@@ -99,19 +98,18 @@
     }
     private async Task OnValidSubmit()
     {
+        IsVisible = false;
+        await InvokeAsync(StateHasChanged);
         if (Booking != null)
         {
-            IsVisible = false;
-            await InvokeAsync(StateHasChanged);
             if (New)
             {
-                AtcPositionBookingService.AddAtcPositionBooking(Booking);
+                await AtcPositionBookingService.AddAtcPositionBooking(Booking);
             }
             else
             {
-                AtcPositionBookingService.UpdateAtcPositionBooking(Booking);
+                await AtcPositionBookingService.UpdateAtcPositionBooking(Booking);
             }
-            await DbContext.SaveChangesAsync();
             if (OnAfterSubmitAsync is not null)
             {
                 await OnAfterSubmitAsync.Invoke(Booking, New, false);
@@ -127,8 +125,7 @@
         await InvokeAsync(StateHasChanged);
         if(Booking != null)
         {
-            AtcPositionBookingService.RemoveAtcPositionBooking(Booking);
-            await DbContext.SaveChangesAsync();
+            await AtcPositionBookingService.RemoveAtcPositionBooking(Booking);
             if (OnAfterSubmitAsync is not null)
             {
                 await OnAfterSubmitAsync.Invoke(Booking, New, true);

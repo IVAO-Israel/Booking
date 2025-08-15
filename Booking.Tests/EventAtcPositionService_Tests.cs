@@ -11,7 +11,7 @@ namespace Booking.Tests
         {
             //Arrange
             IEventService eventService = new MockEventService();
-            IEventAtcPosition service = new MockEventAtcPosition(eventService);
+            IEventAtcPositionService service = new MockEventAtcPosition(eventService);
             var eventObj = new Event
             {
                 Id = Guid.NewGuid(),
@@ -21,7 +21,7 @@ namespace Booking.Tests
                 IsVisible = true,
                 Url = "new-event"
             };
-            eventService.AddEvent(eventObj);
+            await eventService.AddEvent(eventObj);
             var id = Guid.NewGuid();
             var position = new EventAtcPosition()
             {
@@ -31,11 +31,11 @@ namespace Booking.Tests
                 BeginTime = DateTime.UtcNow,
                 EndTime = DateTime.UtcNow.AddHours(1)
             };
-            eventService.LoadAvailableAtcPositions(eventObj);
+            await eventService.LoadAvailableAtcPositions(eventObj);
             eventObj.AvailableAtcPositions?.Add(position);
 
             //Act
-            service.AddEventAtcPosition(position);
+            await service.AddEventAtcPosition(position);
             var result = await service.GetEventAtcPosition(id);
 
             //Assert
@@ -43,11 +43,11 @@ namespace Booking.Tests
             Assert.Equal(id, result.Id);
         }
         [Fact]
-        public void AddEventAtcPosition_ShouldFailOvrelap()
+        public async Task AddEventAtcPosition_ShouldFailOvrelap()
         {
             //Arrange
             IEventService eventService = new MockEventService();
-            IEventAtcPosition service = new MockEventAtcPosition(eventService);
+            IEventAtcPositionService service = new MockEventAtcPosition(eventService);
             var eventObj = new Event
             {
                 Id = Guid.NewGuid(),
@@ -57,7 +57,7 @@ namespace Booking.Tests
                 IsVisible = true,
                 Url = "new-event"
             };
-            eventService.AddEvent(eventObj);
+            await eventService.AddEvent(eventObj);
             var position = new EventAtcPosition()
             {
                 Id = Guid.NewGuid(),
@@ -66,7 +66,7 @@ namespace Booking.Tests
                 BeginTime = DateTime.UtcNow,
                 EndTime = DateTime.UtcNow.AddHours(1)
             };
-            eventService.LoadAvailableAtcPositions(eventObj);
+            await eventService.LoadAvailableAtcPositions(eventObj);
             eventObj.AvailableAtcPositions?.Add(position);
             var id = Guid.NewGuid();
             var position1 = new EventAtcPosition()
@@ -81,7 +81,7 @@ namespace Booking.Tests
             //Act
 
             //Assert
-            Assert.Throws<ArgumentException>(() => service.AddEventAtcPosition(position1));
+            await Assert.ThrowsAsync<ArgumentException>(() => service.AddEventAtcPosition(position1));
         }
     }
 }

@@ -17,7 +17,7 @@ namespace Booking.Tests
                 IVAOUserId = 123456
             };
             //Act
-            service.AddAdministrator(admin);
+            await service.AddAdministrator(admin);
             var result = await service.GetAdministrator(123456);
 
             //Assert
@@ -46,7 +46,7 @@ namespace Booking.Tests
                 Id = Guid.NewGuid(),
                 IVAOUserId = 123456
             };
-            service.AddAdministrator(administrator);
+            await service.AddAdministrator(administrator);
 
             //Act
             var result = await service.GetAdministrator(123456);
@@ -65,11 +65,11 @@ namespace Booking.Tests
                 Id = Guid.NewGuid(),
                 IVAOUserId = 123456
             };
-            service.AddAdministrator(administrator);
+            await service.AddAdministrator(administrator);
 
             //Act
             administrator.IVAOUserId = 123457;
-            service.UpdateAdministrator(administrator);
+            await service.UpdateAdministrator(administrator);
             var result = await service.GetAdministrator(123457);
 
             //Assert
@@ -86,9 +86,9 @@ namespace Booking.Tests
                 Id = Guid.NewGuid(),
                 IVAOUserId = 123456
             };
-            service.AddAdministrator(admin);
+            await service.AddAdministrator(admin);
             //Act
-            service.RemoveAdministrator(admin);
+            await service.RemoveAdministrator(admin);
             var result = await service.GetAdministrator(123456);
 
             //Assert

@@ -1,60 +1,86 @@
-﻿using Booking.Data;
+﻿using System.Threading.Tasks;
+using Booking.Data;
 using Booking.Services.Interfaces;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Services
 {
-    public class DbEventService(BookingDbContext dbContext) : IEventService
+    public class DbEventService(IDbContextFactory<BookingDbContext> factory) : IEventService
     {
-        private readonly BookingDbContext _dbContext = dbContext;
-        void IEventService.AddEvent(Event eventObj)
+        private readonly IDbContextFactory<BookingDbContext> _factory = factory;
+        async Task IEventService.AddEvent(Event eventObj)
         {
-            _dbContext.Entry(eventObj).State = EntityState.Added;
+            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
+            dbContext.Entry(eventObj).State = EntityState.Added;
+            await dbContext.SaveChangesAsync();
         }
         async Task<Event?> IEventService.GetEvent(Guid id)
         {
-            return await _dbContext.Events.FindAsync(id);
+            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
+            return await dbContext.Events.FindAsync(id);
         }
         async Task<Event?> IEventService.GetEventByUrl(string url)
         {
-            return await _dbContext.Events.Where(e => e.Url == url).AsNoTracking().FirstOrDefaultAsync();
+            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
+            return await dbContext.Events.Where(e => e.Url == url).AsNoTracking().FirstOrDefaultAsync();
         }
         async Task IEventService.LoadAvailableAtcPositions(Event eventObj)
         {
-            _dbContext.Entry(eventObj).State = EntityState.Unchanged;
-            await _dbContext.Entry(eventObj).Collection(e => e.AvailableAtcPositions!).Query()
+            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
+            dbContext.Entry(eventObj).State = EntityState.Unchanged;
+            await dbContext.Entry(eventObj).Collection(e => e.AvailableAtcPositions!).Query()
                     .Include(p => p.AtcPosition).LoadAsync();
-            _dbContext.Entry(eventObj).State = EntityState.Detached;
+            dbContext.Entry(eventObj).State = EntityState.Detached;
         }
-        void IEventService.RemoveEvent(Event eventObj)
+        async Task IEventService.RemoveEvent(Event eventObj)
         {
-            if (_dbContext.Entry(eventObj).State == EntityState.Added)
-            {
-                _dbContext.Entry(eventObj).State = EntityState.Detached;
-            }
-            else
-            {
-                _dbContext.Entry(eventObj).State = EntityState.Deleted;
-            }
+            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
+            dbContext.Entry(eventObj).State = EntityState.Deleted;
+            await dbContext.SaveChangesAsync();
         }
-        void IEventService.UpdateEvent(Event eventObj)
+        async Task IEventService.UpdateEvent(Event eventObj)
         {
-            if (_dbContext.Entry(eventObj).State != EntityState.Added)
-            {
-                _dbContext.Entry(eventObj).State = EntityState.Modified;
+            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
+            dbContext.Entry(eventObj).State = EntityState.Modified;
+            var oldEvent = await dbContext.Events.Where(e => e.Id == eventObj.Id).AsNoTracking().FirstOrDefaultAsync();
+            if (oldEvent is not null && (eventObj.BeginTime != oldEvent.BeginTime || eventObj.EndTime != oldEvent.EndTime)) {
+                //If event time is changed
+                await dbContext.Entry(eventObj).Collection(e => e.AvailableAtcPositions!).Query()
+                    .Include(p => p.AtcPosition).Include(p => p.Bookings).LoadAsync();
+                double beginHourDifferenece = (eventObj.BeginTime - oldEvent.BeginTime).TotalHours;
+                double endHourDifferenece = (eventObj.EndTime - oldEvent.EndTime).TotalHours;
+                foreach (var position in eventObj.AvailableAtcPositions!)
+                {
+                    position.BeginTime.AddHours(beginHourDifferenece);
+                    position.EndTime.AddHours(endHourDifferenece);
+                    dbContext.Entry(position).State = EntityState.Modified;
+                    foreach(var booking in position.Bookings!)
+                    {
+                        if(booking.BeginTime < position.BeginTime || booking.EndTime > position.EndTime)
+                        {
+                            //If booking is out of range, delete it
+                            dbContext.Entry(booking).State = EntityState.Deleted;
+                        }
+                    }
+                }
             }
+            await dbContext.SaveChangesAsync();
         }
         async Task<List<Event>> IEventService.GetAllEvents()
         {
-            return await _dbContext.Events.AsNoTracking().ToListAsync();
+            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
+            return await dbContext.Events.AsNoTracking().ToListAsync();
         }
         async Task<List<Event>> IEventService.GetUpcomingEvents()
         {
-            return await _dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible).AsNoTracking().ToListAsync();
+            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
+            return await dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible).AsNoTracking().ToListAsync();
         }
         async Task<List<Event>> IEventService.GetUpcomingEventsForAtc()
         {
-            return await _dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible && e.AvailableAtcPositions != null && e.AvailableAtcPositions.Any()).AsNoTracking().ToListAsync();
+            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
+            return await dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible && e.AvailableAtcPositions != null && e.AvailableAtcPositions.Any()).AsNoTracking().ToListAsync();
         }
     }
 }
