@@ -77,6 +77,8 @@
     public void Show(Event Event, bool New = false, bool Readonly = false)
     {
         this.Event = Event;
+        this.Event.BeginTime = DateTime.Now;
+        this.Event.EndTime = DateTime.Now.AddHours(1);
         this.New = New;
         this.Readonly = Readonly;
         IsVisible = true;
