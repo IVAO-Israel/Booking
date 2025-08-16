@@ -43,8 +43,7 @@ namespace Booking.Data
                 throw new ArgumentNullException(nameof(Event.AvailableAtcPositions));
             }
             return Event.AvailableAtcPositions.Where(p => p.AtcPositionId == AtcPositionId)
-                                       .Where(p => BeginTime < p.EndTime && p.BeginTime < EndTime)
-                                       .Where(p=>p.Id != Id).Any();
+                                       .Where(p => BeginTime < p.EndTime && p.BeginTime < EndTime).Any();
         }
     }
 }
