@@ -216,7 +216,7 @@
                     NoBooking = noBooking
                 };
             })
-            .OrderByAtcPosition(p => p.Position.IVAOCallsign).ToList();
+            .ToList();
     }
     private double GetLeft(AtcPositionBooking booking)
     {
