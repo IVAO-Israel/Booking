@@ -99,10 +99,10 @@
     }
     private async Task OnValidSubmit()
     {
-        IsVisible = false;
-        await InvokeAsync(StateHasChanged);
         if (Booking != null)
         {
+            IsVisible = false;
+            await InvokeAsync(StateHasChanged);
             if (New)
             {
                 AtcPositionBookingService.AddAtcPositionBooking(Booking);
