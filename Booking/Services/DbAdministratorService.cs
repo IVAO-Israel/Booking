@@ -1,50 +1,41 @@
-﻿using System.Runtime.CompilerServices;
-using Booking.Data;
+﻿using Booking.Data;
 using Booking.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Services
 {
-    public class DbAdministratorService(IDbContextFactory<BookingDbContext> factory) : IAdministratorService
+    public class DbAdministratorService(BookingDbContext dbContext) : IAdministratorService
     {
-        private readonly IDbContextFactory<BookingDbContext> _factory = factory;
-        async Task IAdministratorService.AddAdministrator(Administrator administrator)
+        private readonly BookingDbContext _dbContext = dbContext;
+        void IAdministratorService.AddAdministrator(Administrator administrator)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            dbContext.Entry(administrator).State = EntityState.Added;
-            await dbContext.SaveChangesAsync();
+            _dbContext.Entry(administrator).State = EntityState.Added;
         }
-        async Task IAdministratorService.RemoveAdministrator(Administrator administrator)
+        void IAdministratorService.RemoveAdministrator(Administrator administrator)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            if (dbContext.Entry(administrator).State == EntityState.Added)
+            if (_dbContext.Entry(administrator).State == EntityState.Added)
             {
-                dbContext.Entry(administrator).State = EntityState.Detached;
+                _dbContext.Entry(administrator).State = EntityState.Detached;
             }
             else
             {
-                dbContext.Entry(administrator).State = EntityState.Deleted;
+                _dbContext.Entry(administrator).State = EntityState.Deleted;
             }
-            await dbContext.SaveChangesAsync();
         }
         async Task<Administrator?> IAdministratorService.GetAdministrator(int IVAOUserId)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Administrators.Where(a => a.IVAOUserId == IVAOUserId).AsNoTracking().FirstOrDefaultAsync();
+            return await _dbContext.Administrators.Where(a => a.IVAOUserId == IVAOUserId).AsNoTracking().FirstOrDefaultAsync();
         }
-        async Task IAdministratorService.UpdateAdministrator(Administrator administrator)
+        void IAdministratorService.UpdateAdministrator(Administrator administrator)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            if (dbContext.Entry(administrator).State != EntityState.Added)
+            if (_dbContext.Entry(administrator).State != EntityState.Added)
             {
-                dbContext.Entry(administrator).State = EntityState.Modified;
+                _dbContext.Entry(administrator).State = EntityState.Modified;
             }
-            await dbContext.SaveChangesAsync();
         }
         async Task<List<Administrator>> IAdministratorService.GetAllAdministrators()
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Administrators.AsNoTracking().ToListAsync();
+            return await _dbContext.Administrators.AsNoTracking().ToListAsync();
         }
     }
 }
