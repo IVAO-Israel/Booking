@@ -1,0 +1,209 @@
+﻿@page "/administrators/users"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Policy = "Administrator")]
+@inject IAdministratorService AdministratorService
+@inject IvaoUserService IvaoUserService
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@using Booking.Services
+@using Booking.Services.Interfaces
+@using Booking.Data
+<PageTitle>Admin Management</PageTitle>
+
+<div class="admin-container">
+    <div class="header-section">
+        <h1 class="page-title">
+            <i class="icon-users"></i>
+            Admin Management
+        </h1>
+        <button class="btn btn-primary" @onclick="OpenCreateModal">
+            <i class="icon-plus"></i>
+            Add New Admin
+        </button>
+    </div>
+
+    <!-- Admin Table -->
+    <div class="table-container">
+        <div class="table-wrapper">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>IVAO VID</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var admin in _admins)
+                    {
+                        <tr class="@(admin.IVAOUserId == _currentUserVid ? "current-user" : "")">
+                            <td class="ivao-id-cell">@admin.IVAOUserId</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-icon btn-delete" 
+                                            @onclick="() => OpenDeleteModal(admin)" 
+                                            disabled="@(admin.IVAOUserId == _currentUserVid)"
+                                            title="@(admin.IVAOUserId == _currentUserVid ? "Cannot delete yourself" : "Delete")">
+                                        <i class="icon-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Create/Edit Modal -->
+    @if (_showModal)
+    {
+        <div class="modal-overlay" @onclick="CloseModal">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>Add New Admin</h3>
+                    <button class="btn-close" @onclick="CloseModal">
+                        <i class="icon-x"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="_adminForm" OnValidSubmit="SaveAdmin">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="form-group">
+                            <label>IVAO User ID</label>
+                            <InputNumber @bind-Value="_adminForm.IVAOUserId" class="form-control" placeholder="Enter IVAO User ID" />
+                            <ValidationMessage For="@(() => _adminForm.IVAOUserId)" />
+                        </div>
+                        
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">
+                                Create Admin
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Delete Confirmation Modal -->
+    @if (_showDeleteModal)
+    {
+        <div class="modal-overlay" @onclick="CloseDeleteModal">
+            <div class="modal-content delete-modal" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>Confirm Deletion</h3>
+                    <button class="btn-close" @onclick="CloseDeleteModal">
+                        <i class="icon-x"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="delete-warning">
+                        <i class="icon-alert-triangle"></i>
+                        <p>Are you sure you want to delete admin with IVAO VID <strong>@_adminToDelete?.IVAOUserId</strong>?</p>
+                        <p class="warning-text">This action cannot be undone.</p>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseDeleteModal">Cancel</button>
+                        <button type="button" class="btn btn-danger" @onclick="DeleteAdmin">Delete Admin</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+
+@code {
+    private List<Administrator> _admins = new();
+    private AdminFormModel _adminForm = new();
+    private Administrator? _adminToDelete;
+    private int _currentUserVid;
+    private bool _showModal = false;
+    private bool _showDeleteModal = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _currentUserVid = await IvaoUserService.GetUserIvaoId();
+            await Load();
+        }
+    }
+
+    private async Task Load()
+    {
+        _admins = (await AdministratorService.GetAllAdministrators()).ToList();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OpenCreateModal()
+    {
+        _adminForm = new AdminFormModel();
+        _showModal = true;
+    }
+
+    private void OpenEditModal(Administrator admin)
+    {
+        _adminForm = new AdminFormModel
+        {
+            Id = admin.Id,
+            IVAOUserId = admin.IVAOUserId
+        };
+        _showModal = true;
+    }
+
+    private void OpenDeleteModal(Administrator admin)
+    {
+        _adminToDelete = admin;
+        _showDeleteModal = true;
+    }
+
+    private void CloseModal()
+    {
+        _showModal = false;
+        _adminForm = new AdminFormModel();
+    }
+
+    private void CloseDeleteModal()
+    {
+        _showDeleteModal = false;
+        _adminToDelete = null;
+    }
+
+    private async Task SaveAdmin()
+    {
+        var newAdmin = new Administrator
+            {
+                Id = Guid.Empty,
+                IVAOUserId = _adminForm.IVAOUserId
+            };
+        await AdministratorService.AddAdministrator(newAdmin);
+        _admins.Add(newAdmin);
+        CloseModal();
+        StateHasChanged();     
+    }
+
+    private async Task DeleteAdmin()
+    {
+        if (_adminToDelete != null)
+        {
+            await AdministratorService.RemoveAdministrator(_adminToDelete);
+            _admins.Remove(_adminToDelete);
+            CloseDeleteModal();
+            StateHasChanged();
+        }
+    }
+
+    public class AdminFormModel
+    {
+        public Guid Id { get; set; }
+
+        [Required(ErrorMessage = "IVAO VID is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please enter a valid IVAO VID")]
+        public int IVAOUserId { get; set; }
+    }
+}
