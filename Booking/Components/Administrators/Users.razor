@@ -133,7 +133,7 @@
             await Load();
         }
     }
-    
+
     private async Task Load()
     {
         _admins = (await AdministratorService.GetAllAdministrators()).ToList();
@@ -176,29 +176,22 @@
 
     private async Task SaveAdmin()
     {
-        try
-        {
-                var newAdmin = new Administrator
-                {
-                    Id = Guid.Empty,
-                    IVAOUserId = _adminForm.IVAOUserId
-                };
-                _admins.Add(newAdmin);
-
-            CloseModal();
-            StateHasChanged();
-        }
-        catch (Exception ex)
-        {
-            // Handle error - you might want to show a toast notification
-            Console.WriteLine($"Error saving admin: {ex.Message}");
-        }
+        var newAdmin = new Administrator
+            {
+                Id = Guid.Empty,
+                IVAOUserId = _adminForm.IVAOUserId
+            };
+        await AdministratorService.AddAdministrator(newAdmin);
+        _admins.Add(newAdmin);
+        CloseModal();
+        StateHasChanged();     
     }
 
     private async Task DeleteAdmin()
     {
         if (_adminToDelete != null)
         {
+            await AdministratorService.RemoveAdministrator(_adminToDelete);
             _admins.Remove(_adminToDelete);
             CloseDeleteModal();
             StateHasChanged();
