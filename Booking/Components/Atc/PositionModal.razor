@@ -2,7 +2,6 @@
 @using Booking.Services.Interfaces
 @using System.Reflection
 @using Microsoft.AspNetCore.Authorization
-@using Booking.Extensions
 @inject IEventAtcPositionService EventAtcPositionService
 @inject IAtcPositionService AtcPositionService
 @attribute [Authorize (Policy="Administrator")]
@@ -106,7 +105,7 @@
     private List<(string, int)> ratings = [];
     protected override async Task OnInitializedAsync()
     {
-        positions = (await AtcPositionService.GetAllAtcPositions()).OrderByAtcPosition(p => p.IVAOCallsign).ToList();
+        positions = await AtcPositionService.GetAllAtcPositions();
         var fields = typeof(AtcRating).GetFields(BindingFlags.Public | BindingFlags.Static);
         foreach(var field in fields)
         {
