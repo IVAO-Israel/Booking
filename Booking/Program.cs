@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -51,7 +50,6 @@ namespace Booking
                 options.LoginPath = "/login";
                 options.LogoutPath = "/logout";
                 options.AccessDeniedPath = "/accessdenied";
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             })
             .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {
@@ -61,7 +59,7 @@ namespace Booking
                 options.ClientId = builder.Configuration["Authentication:OIDC:ClientId"];
                 options.ClientSecret = builder.Configuration["Authentication:OIDC:ClientSecret"];
                 options.ResponseType = "code";
-                options.SaveTokens = false;
+                options.SaveTokens = true;
 
                 options.Scope.Clear();
                 options.Scope.Add("openid");
@@ -84,37 +82,23 @@ namespace Booking
                 {
                     OnTokenValidated = async ctx =>
                     {
-                        var userId = ctx.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                        if (userId is not null && ctx.TokenEndpointResponse is not null)
+                        var identity = ctx.Principal?.Identity as ClaimsIdentity;
+                        if (ctx.TokenEndpointResponse?.AccessToken is not null)
                         {
-                            var expiresInString = ctx.TokenEndpointResponse.ExpiresIn;
-                            DateTime expiresAt;
-
-                            if (int.TryParse(expiresInString, out int expiresInSeconds))
-                            {
-                                expiresAt = DateTime.UtcNow.AddSeconds(expiresInSeconds);
-                            }
-                            else
-                            {
-                                expiresAt = DateTime.UtcNow.AddHours(1);
-                            }
-
-                            var tokenCacheService = ctx.HttpContext.RequestServices.GetRequiredService<ITokenCacheService>();
-                            await tokenCacheService.StoreTokensAsync(userId, new TokenData()
-                            {
-                                AccessToken = ctx.TokenEndpointResponse.AccessToken,
-                                RefreshToken = ctx.TokenEndpointResponse.RefreshToken,
-                                ExpiresAt = expiresAt
-                            });
+                            identity?.AddClaim(new Claim("access_token", ctx.TokenEndpointResponse.AccessToken));
                         }
+                        if (ctx.TokenEndpointResponse?.RefreshToken is not null)
+                        {
+                            identity?.AddClaim(new Claim("refresh_token", ctx.TokenEndpointResponse.RefreshToken));
+                        }
+                        await Task.CompletedTask;
                     }
                 };
             });
 
             // Authorization
             builder.Services.AddAuthorizationBuilder().AddPolicy("Administrator", policy => policy.Requirements.Add(new AdministratorRequirement()));
-            
-            builder.Services.AddSingleton<ITokenCacheService, InMemoryTokenCacheService>();
+
             builder.Services.AddScoped<IAdministratorService, DbAdministratorService>();
             builder.Services.AddScoped<IEventService, DbEventService>();
             builder.Services.AddScoped<IAtcPositionService, DbAtcPositionService>();
@@ -127,14 +111,8 @@ namespace Booking
             // Register handler for Administrator protection
             builder.Services.AddScoped<IAuthorizationHandler, AdministratorAuthorizationHandler>();
 
-            builder.Services.Configure<ForwardedHeadersOptions>(options =>
-            {
-                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-                options.KnownNetworks.Clear();
-                options.KnownProxies.Clear();
-            });
-
             var app = builder.Build();
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -146,7 +124,7 @@ namespace Booking
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            app.UseForwardedHeaders();
+
             app.UseHttpsRedirection();
             app.UseSerilogRequestLogging();
 
