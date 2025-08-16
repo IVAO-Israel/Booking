@@ -1,5 +1,4 @@
 ﻿@inherits LayoutComponentBase
-@inject IConfiguration Configuration
 
 <div class="page">
     <div class="sidebar">
@@ -10,11 +9,6 @@
         <article class="content">
             @Body
         </article>
-        <footer class="position-absolute bottom-0" style="left:250px;right:0;">
-            <div class="text-center" style="color:#0D2C99;">
-                &copy; @DateTime.UtcNow.Year. IVAO @Configuration["DivisionId"]?.ToString().ToUpper()
-            </div>
-        </footer>
     </main>
 </div>
 
