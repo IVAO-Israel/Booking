@@ -1,14 +1,18 @@
 ﻿using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 
 namespace Booking.Services
 {
-    public class IvaoUserService(IAuthorizationService authorizationService,
-        AuthenticationStateProvider authenticationStateProvider,
-        OidcConfigurationService oidcConfigurationService,
+    public class IvaoUserService(IAuthorizationService authorizationService, 
+        AuthenticationStateProvider authenticationStateProvider, 
+        OidcConfigurationService oidcConfigurationService, 
         HttpClient httpClient,
         IConfiguration configuration,
         NavigationManager navigationManager)
@@ -29,10 +33,9 @@ namespace Booking.Services
                 var accessToken = user.FindFirst("access_token")?.Value;
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
                 var response = await _httpClient.GetAsync(endpoint);
-                response.EnsureSuccessStatusCode();
+                response.EnsureSuccessStatusCode(); 
                 return await response.Content.ReadAsStringAsync();
-            }
-            catch (HttpRequestException)
+            } catch (HttpRequestException)
             {
                 //Not authorized, problem with token
                 var relativeUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
@@ -60,8 +63,8 @@ namespace Booking.Services
             var result = await _authorizationService.AuthorizeAsync(user, "Administrator");
             return result.Succeeded;
         }
-        public async Task<string> GetUserDivisionId()
-        {
+        public async Task<string> GetUserDivisionId() 
+        { 
             var json = await GetUserData();
             dynamic? obj = JsonConvert.DeserializeObject(json!);
             return obj?.divisionId!;
