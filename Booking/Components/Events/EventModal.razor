@@ -98,6 +98,9 @@
                 if (!Event.IsVisible)
                 {
                     Event.Url = null;
+                } else if(Event.EndTime < DateTime.UtcNow)
+                {
+                    Event.Url = Event.Name.ToLower().Replace(' ', '-');
                 }
                 await EventService.UpdateEvent(Event);
             }
