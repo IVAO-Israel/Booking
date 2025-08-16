@@ -1,5 +1,7 @@
-﻿using Booking.Data;
+﻿using System.Threading.Tasks;
+using Booking.Data;
 using Booking.Services.Interfaces;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Services
@@ -42,8 +44,7 @@ namespace Booking.Services
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
             dbContext.Entry(eventObj).State = EntityState.Modified;
             var oldEvent = await dbContext.Events.Where(e => e.Id == eventObj.Id).AsNoTracking().FirstOrDefaultAsync();
-            if (oldEvent is not null && (eventObj.BeginTime != oldEvent.BeginTime || eventObj.EndTime != oldEvent.EndTime))
-            {
+            if (oldEvent is not null && (eventObj.BeginTime != oldEvent.BeginTime || eventObj.EndTime != oldEvent.EndTime)) {
                 //If event time is changed
                 await dbContext.Entry(eventObj).Collection(e => e.AvailableAtcPositions!).Query()
                     .Include(p => p.AtcPosition).Include(p => p.Bookings).LoadAsync();
@@ -54,9 +55,9 @@ namespace Booking.Services
                     position.BeginTime.AddHours(beginHourDifferenece);
                     position.EndTime.AddHours(endHourDifferenece);
                     dbContext.Entry(position).State = EntityState.Modified;
-                    foreach (var booking in position.Bookings!)
+                    foreach(var booking in position.Bookings!)
                     {
-                        if (booking.BeginTime < position.BeginTime || booking.EndTime > position.EndTime)
+                        if(booking.BeginTime < position.BeginTime || booking.EndTime > position.EndTime)
                         {
                             //If booking is out of range, delete it
                             dbContext.Entry(booking).State = EntityState.Deleted;
