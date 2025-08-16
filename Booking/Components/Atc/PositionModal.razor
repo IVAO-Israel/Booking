@@ -3,6 +3,7 @@
 @using System.Reflection
 @using Microsoft.AspNetCore.Authorization
 @using Booking.Extensions
+@using System.ComponentModel.DataAnnotations.Schema
 @inject IEventAtcPositionService EventAtcPositionService
 @inject IAtcPositionService AtcPositionService
 @attribute [Authorize (Policy="Administrator")]
@@ -27,16 +28,17 @@
                         <div class="row">
                             <div class="col"><label for="position" class="form-label">Position</label></div>
                             <div class="col">
-                                <InputSelect id="position"
-                                             Value="@Position.AtcPositionId"
-                                             ValueExpression="() => Position.AtcPositionId"
-                                             ValueChanged="(Guid newValue) => AtcPositionChanged(newValue)"
-                                             class="form-control">
-                                    @foreach (var pos in positions)
-                                    {
-                                        <option value="@pos.Id">@pos.ToString()</option>
-                                    }
-                                </InputSelect>
+                                <InputText id="position"
+                                             Value="@AtcPositionName"
+                                             ValueExpression="() => AtcPositionName"
+                                             ValueChanged="(string newValue) => AtcPositionChanged(newValue)"
+                                             class="form-control" list="positions"/>
+                                <datalist id="positions">
+                                @foreach (var pos in positions)
+                                {
+                                    <option value="@pos.Name">@pos.ToString()</option>
+                                }
+                                </datalist>
                             </div>
                         </div>
                         <div class="row">
@@ -94,6 +96,7 @@
     private ConfirmModal ConfirmRemove = default!;
     [SupplyParameterFromForm]
     private EventAtcPosition? Position { get; set; }
+    private string AtcPositionName = default!;
     [Parameter]
     public int CurrentIvaoUserAtcRating { get; set; }
     private bool New { get; set; } = false;
@@ -116,6 +119,10 @@
     public void Show(EventAtcPosition position, bool New = false, bool Readonly = false)
     {
         Position = position;
+        if (position.AtcPosition is not null)
+        {
+            AtcPositionName = position.AtcPosition.Name;
+        }
         this.New = New;
         this.Readonly = Readonly;
         editContext = new EditContext(Position);
@@ -126,6 +133,10 @@
                 if (Position is not null && Position.HasOverlap())
                 {
                     messageStore.Add(editContext.Field(string.Empty), "Position is overlapping.");
+                }
+                if(position.AtcPosition is null)
+                {
+                    messageStore.Add(editContext.Field(string.Empty), "Position doesn't exist.");
                 }
                 editContext.NotifyValidationStateChanged();
             };
@@ -184,11 +195,17 @@
     {
         ConfirmRemove.Show("Remove position", "Do you want to remove this position?");
     }
-    private void AtcPositionChanged(Guid id){
+    private void AtcPositionChanged(string name){
         if (Position is not null)
         {
-            Position.AtcPosition = positions.Where(a => a.Id == id).First();
-            Position.AtcPositionId = id;
+            Position.AtcPosition = positions.Where(a => a.Name == name).FirstOrDefault()!;
+            if (Position.AtcPosition is not null)
+            {
+                AtcPositionName = Position.AtcPosition.Name;
+            } else
+            {
+                AtcPositionName = name;
+            }
         }
     }
 }
