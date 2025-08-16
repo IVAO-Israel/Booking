@@ -30,8 +30,7 @@ namespace Booking.Data
             {
                 throw new ArgumentNullException(nameof(EventAtcPosition.Bookings));
             }
-            return EventAtcPosition.Bookings.Where(b => BeginTime < b.EndTime && b.BeginTime < EndTime)
-                .Where(b => b.Id != Id).Any();
+            return EventAtcPosition.Bookings.Where(b => BeginTime < b.EndTime && b.BeginTime < EndTime).Any();
         }
     }
 }
