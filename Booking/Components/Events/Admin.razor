@@ -9,12 +9,6 @@
 @attribute [Authorize(Policy = "Administrator")]
 @rendermode InteractiveServer
 <PageTitle>Upcoming events</PageTitle>
-<script>
-	// Initialize all tooltips on the page
-	document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
-	  new bootstrap.Tooltip(el);
-	});
-</script>
 <h1 class="text-center">Events</h1>
 @if(Events is null)
 {
@@ -33,13 +27,6 @@
 				<div>
 					<button type="button" class="btn btn-primary" @onclick="() => EditEvent(e)">Edit</button>
 					<button type="button" class="btn btn-danger" @onclick="() => ShowConfirmDelete(e)">Delete</button>
-					<button class="btn btn-primary"
-							data-bs-toggle="tooltip"
-							data-bs-placement="top"
-							title="ATC positions"
-							@onclick="() => AtcPositions(e)">
-						&#x1F3A7;
-					</button>
 				</div>
 			</ChildContent>
 		</TemplateColumn>
@@ -123,9 +110,5 @@
 			}
 		}
 		StateHasChanged();
-	}
-	private void AtcPositions(Event eventObj)
-	{
-		NavigationManager.NavigateTo($"events/{eventObj.Url}/atc/positions");
 	}
 }
