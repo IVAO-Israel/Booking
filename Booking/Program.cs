@@ -164,12 +164,7 @@ namespace Booking
             {
                 await context.Response.WriteAsync("Access Denied: You do not have permission to view this page.");
             });
-            using (var scope = app.Services.CreateScope())
-            {
-                var dbFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<BookingDbContext>>();
-                using var dbContext = dbFactory.CreateDbContext();
-                dbContext.Database.Migrate();
-            }
+
             app.Run();
         }
     }
