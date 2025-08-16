@@ -4,21 +4,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Services
 {
-    public class DbEventAtcPositionService(IDbContextFactory<BookingDbContext> factory, IEventService eventService) : IEventAtcPositionService
+    public class DbEventAtcPositionService(BookingDbContext dbContext, IEventService eventService) : IEventAtcPositionService
     {
-        private readonly IDbContextFactory<BookingDbContext> _factory = factory;
+        private readonly BookingDbContext _dbContext = dbContext;
         private readonly IEventService _eventService = eventService;
-        async Task IEventAtcPositionService.AddEventAtcPosition(EventAtcPosition position)
+        void IEventAtcPositionService.AddEventAtcPosition(EventAtcPosition position)
         {
-            await _eventService.LoadAvailableAtcPositions(position.Event);
+            _eventService.LoadAvailableAtcPositions(position.Event);
             if (position.Event.AvailableAtcPositions is not null)
             {
                 if (!position.HasOverlap())
                 {
-                    using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
                     position.Event.AvailableAtcPositions.Add(position);
-                    dbContext.Entry(position).State = EntityState.Added;
-                    await dbContext.SaveChangesAsync();
+                    _dbContext.Entry(position).State = EntityState.Added;
                 }
                 else
                 {
@@ -28,33 +26,40 @@ namespace Booking.Services
         }
         async Task<EventAtcPosition?> IEventAtcPositionService.GetEventAtcPosition(Guid id)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.EventAtcPositions.Include(p => p.AtcPosition).FirstOrDefaultAsync(p => p.Id == id);
+            return await _dbContext.EventAtcPositions.Include(p => p.AtcPosition).FirstOrDefaultAsync(p => p.Id == id);
         }
         async Task<List<EventAtcPosition>> IEventAtcPositionService.GetEventAtcPositions(Event eventObj)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.EventAtcPositions.Include(p => p.AtcPosition).Where(p => p.EventId == eventObj.Id).AsNoTracking().ToListAsync();
+            return await _dbContext.EventAtcPositions.Include(p => p.AtcPosition).Where(p => p.EventId == eventObj.Id).AsNoTracking().ToListAsync();
         }
-        async Task IEventAtcPositionService.RemoveEventAtcPosition(EventAtcPosition position)
+        void IEventAtcPositionService.RemoveEventAtcPosition(EventAtcPosition position)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            dbContext.Entry(position).State = EntityState.Deleted;
-            await dbContext.SaveChangesAsync();
+            if (_dbContext.Entry(position).State == EntityState.Added)
+            {
+                _dbContext.Entry(position).State = EntityState.Detached;
+            }
+            else
+            {
+                _dbContext.Entry(position).State = EntityState.Deleted;
+            }
         }
-        async Task IEventAtcPositionService.UpdateEventAtcPosition(EventAtcPosition position)
+        void IEventAtcPositionService.UpdateEventAtcPosition(EventAtcPosition position)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            dbContext.Entry(position).State = EntityState.Modified;
-            await dbContext.SaveChangesAsync();
+            if (_dbContext.Entry(position).State != EntityState.Added)
+            {
+                _dbContext.Entry(position).State = EntityState.Modified;
+            }
         }
         async Task IEventAtcPositionService.LoadBookings(EventAtcPosition position)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            dbContext.Entry(position).State = EntityState.Unchanged;
-            await dbContext.Entry(position).Collection(p => p.Bookings!).Query()
+            if (_dbContext.ChangeTracker.Entries<EventAtcPosition>().Where(e => e.Entity.Id == position.Id).FirstOrDefault() is null)
+            {
+                //Not already tracked to prevent exception
+                _dbContext.Entry(position).State = EntityState.Unchanged;
+            }
+            await _dbContext.Entry(position).Collection(p => p.Bookings!).Query()
                 .Include(b => b.EventAtcPosition).LoadAsync();
-            dbContext.Entry(position).State = EntityState.Detached;
+            _dbContext.Entry(position).State = EntityState.Detached;
         }
     }
 }
