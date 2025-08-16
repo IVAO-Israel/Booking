@@ -18,14 +18,6 @@ namespace Booking.Extensions
             return source.OrderBy(item =>
             {
                 var value = selector(item);
-                if (value is not null && value.Length >= 4)
-                {
-                    return value[0..4];
-                }
-                return value;
-            }).ThenBy(item =>
-            {
-                var value = selector(item);
                 var match = AtcRegex.Match(value);
                 if (match.Success && AtcPositionOrder.TryGetValue(match.Value, out int order))
                 {
@@ -33,7 +25,7 @@ namespace Booking.Extensions
                 }
                 // If no match, sort after known positions
                 return int.MaxValue;
-            });
+            }).ThenBy(selector);
         }
     }
 }
