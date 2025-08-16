@@ -20,31 +20,11 @@
 	<div class="alert alert-danger text-center">
 		Only memebers of @DivisionId or members holding GCA are allowed to book ATC positions.
 	</div>
-} else if (!IsAdmin)
-{
-	if(DateTime.UtcNow > Event.EndTime)
-	{
-		<div class="alert alert-success">Event is finished.</div>
-	} else if (!Event.IsVisible)
-	{
-		<div class="alert alert-danger">Event is not published.</div>
-	}
 } else
 {
-	if (IsAdmin)
-	{
-		if(Event.Url is null && Event.IsVisible)
-		{
-			<div class="alert alert-danger">Event url is invalid.</div>
-		}
-		if (DateTime.UtcNow > Event.EndTime)
-		{
-			<div class="alert alert-success">Event is finished.</div>
-		}
-	}
 	<div>
 		<div class="row">
-			<div class="col"><label for="name" class="form-label">Event name</label></div>
+			<div class="col"><label for="name" class="form-label">Name</label></div>
 			<div class="col">
 				<InputText id="name" class="form-control" @bind-Value="Event.Name" readonly/>
 			</div>
@@ -106,18 +86,7 @@
 		Event = await EventService.GetEventByUrl(EventUrl);
 		if (Event is null)
 		{
-			if (IsAdmin && Guid.TryParse(EventUrl, out Guid id))
-			{
-				Event = await EventService.GetEvent(id);
-				if(Event is null)
-				{
-					NavigationManager.NavigateTo("events/admin");
-				}
-			}
-			else
-			{
-				NavigationManager.NavigateTo("events/upcoming");
-			}
+			NavigationManager.NavigateTo("events/upcoming");
 		}
 		else
 		{
