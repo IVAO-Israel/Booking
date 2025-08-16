@@ -3,6 +3,7 @@
 @using Booking.Services.Interfaces
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
+@inject BookingDbContext DbContext
 @inject IEventService EventService
 @inject IEventAtcPositionService EventAtcPositionService
 @inject NavigationManager NavigationManager

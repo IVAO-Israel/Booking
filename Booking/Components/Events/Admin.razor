@@ -5,6 +5,7 @@
 @using Booking.Services.Interfaces
 @using Microsoft.AspNetCore.Components.QuickGrid
 @inject IEventService EventService
+@inject BookingDbContext DbContext
 @inject NavigationManager NavigationManager
 @attribute [Authorize(Policy = "Administrator")]
 @rendermode InteractiveServer
@@ -90,8 +91,9 @@
 	{
 		if (eventObj is not null)
 		{
-			await EventService.RemoveEvent(eventObj);
+			EventService.RemoveEvent(eventObj);
 			Events?.Remove(eventObj);
+			await DbContext.SaveChangesAsync();
 			await InvokeAsync(StateHasChanged);
 		}
 	}
