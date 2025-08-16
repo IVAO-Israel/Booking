@@ -1,64 +1,65 @@
-﻿using System.Threading.Tasks;
-using Booking.Data;
+﻿using Booking.Data;
 using Booking.Services.Interfaces;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Services
 {
-    public class DbEventService(IDbContextFactory<BookingDbContext> factory) : IEventService
+    public class DbEventService(BookingDbContext dbContext) : IEventService
     {
-        private readonly IDbContextFactory<BookingDbContext> _factory = factory;
-        async Task IEventService.AddEvent(Event eventObj)
+        private readonly BookingDbContext _dbContext = dbContext;
+        void IEventService.AddEvent(Event eventObj)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            dbContext.Entry(eventObj).State = EntityState.Added;
-            await dbContext.SaveChangesAsync();
+            _dbContext.Entry(eventObj).State = EntityState.Added;
         }
         async Task<Event?> IEventService.GetEvent(Guid id)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Events.FindAsync(id);
+            return await _dbContext.Events.FindAsync(id);
         }
         async Task<Event?> IEventService.GetEventByUrl(string url)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Events.Where(e => e.Url == url).AsNoTracking().FirstOrDefaultAsync();
+            return await _dbContext.Events.Where(e => e.Url == url).AsNoTracking().FirstOrDefaultAsync();
         }
         async Task IEventService.LoadAvailableAtcPositions(Event eventObj)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            dbContext.Entry(eventObj).State = EntityState.Unchanged;
-            await dbContext.Entry(eventObj).Collection(e => e.AvailableAtcPositions!).Query()
+            if (_dbContext.ChangeTracker.Entries<Event>().Where(e => e.Entity.Id == eventObj.Id).FirstOrDefault() is null)
+            {
+                //Not already tracked to prevent exception
+                _dbContext.Entry(eventObj).State = EntityState.Unchanged;
+            }
+            await _dbContext.Entry(eventObj).Collection(e => e.AvailableAtcPositions!).Query()
                     .Include(p => p.AtcPosition).LoadAsync();
-            dbContext.Entry(eventObj).State = EntityState.Detached;
+            _dbContext.Entry(eventObj).State = EntityState.Detached;
         }
-        async Task IEventService.RemoveEvent(Event eventObj)
+        void IEventService.RemoveEvent(Event eventObj)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            dbContext.Entry(eventObj).State = EntityState.Deleted;
-            await dbContext.SaveChangesAsync();
+            if (_dbContext.Entry(eventObj).State == EntityState.Added)
+            {
+                _dbContext.Entry(eventObj).State = EntityState.Detached;
+            }
+            else
+            {
+                _dbContext.Entry(eventObj).State = EntityState.Deleted;
+            }
         }
-        async Task IEventService.UpdateEvent(Event eventObj)
+        void IEventService.UpdateEvent(Event eventObj)
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            dbContext.Entry(eventObj).State = EntityState.Modified;
-            await dbContext.SaveChangesAsync();
+            if (_dbContext.Entry(eventObj).State != EntityState.Added)
+            {
+                _dbContext.Entry(eventObj).State = EntityState.Modified;
+            }
         }
         async Task<List<Event>> IEventService.GetAllEvents()
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Events.AsNoTracking().ToListAsync();
+            return await _dbContext.Events.AsNoTracking().ToListAsync();
         }
         async Task<List<Event>> IEventService.GetUpcomingEvents()
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible).AsNoTracking().ToListAsync();
+            return await _dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible).AsNoTracking().ToListAsync();
         }
         async Task<List<Event>> IEventService.GetUpcomingEventsForAtc()
         {
-            using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible && e.AvailableAtcPositions != null && e.AvailableAtcPositions.Any()).AsNoTracking().ToListAsync();
+            return await _dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible && e.AvailableAtcPositions != null && e.AvailableAtcPositions.Any()).AsNoTracking().ToListAsync();
         }
     }
 }
