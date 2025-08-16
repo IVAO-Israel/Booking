@@ -97,7 +97,11 @@
 	}
 	private void NewEvent()
 	{
-		Modal.Show(new(), true, false);
+		Modal.Show(new()
+		{
+			BeginTime = DateTime.UtcNow,
+			EndTime = DateTime.UtcNow.AddHours(1),
+		}, true, false);
 	}
 	private async Task DeleteEvent(Event? eventObj)
 	{

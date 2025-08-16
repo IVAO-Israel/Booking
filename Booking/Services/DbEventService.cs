@@ -46,7 +46,7 @@ namespace Booking.Services
             {
                 //If event time is changed
                 await dbContext.Entry(eventObj).Collection(e => e.AvailableAtcPositions!).Query()
-                    .Include(p => p.AtcPosition).Include(p => p.Bookings).LoadAsync();
+                    .Include(p => p.AtcPosition).Include(p => p.Bookings).AsNoTracking().LoadAsync();
                 double beginHourDifferenece = (eventObj.BeginTime - oldEvent.BeginTime).TotalHours;
                 double endHourDifferenece = (eventObj.EndTime - oldEvent.EndTime).TotalHours;
                 foreach (var position in eventObj.AvailableAtcPositions!)
