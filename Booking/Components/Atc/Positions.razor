@@ -113,6 +113,10 @@
 				{
 					NavigationManager.NavigateTo("events/admin");
 				}
+				else
+				{
+					await EventService.LoadAvailableAtcPositions(Event);
+				}
 			}
 			else
 			{
