@@ -368,7 +368,13 @@
         var positions = Event.AvailableAtcPositions!.Where(a => a.AtcPosition.Id == position.Id).ToList();
         if(positions.Count == 1)
         {
-            PositionModal?.Show(positions.First(), false, false);
+            PositionModal?.Show(new EventAtcPosition()
+            {
+                Id = Guid.NewGuid(),
+                Event = Event,
+                BeginTime = Event.BeginTime,
+                EndTime = Event.EndTime,
+            }, false, false);
         } else if (positions.Count > 1)
         {
             //TODO: choose which to edit or edit all??
