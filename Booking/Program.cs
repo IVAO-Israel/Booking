@@ -21,7 +21,7 @@ namespace Booking
         {
             var builder = WebApplication.CreateBuilder(args);
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Warning() // Log Warnings and above
+                .MinimumLevel.Information() // Log Information and above
                 .WriteTo.File(
                     path: Path.Combine(AppContext.BaseDirectory, "Logs", "log-.txt"),
                     rollingInterval: RollingInterval.Day,      // New file each day
