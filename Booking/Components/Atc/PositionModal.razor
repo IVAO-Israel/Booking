@@ -75,7 +75,7 @@
                         <button type="button" class="btn btn-secondary" @onclick="ShowConfirmCancel">Cancel</button>
                         @if (!New)
                         {
-                            <button type="button" class="btn btn-danger" @onclick="ShowConfirmRemove">Remove position</button>
+                            <button type="button" class="btn btn-danger" @onclick="Remove">Remove position</button>
                         }
                     </div>
                 </EditForm>
@@ -84,13 +84,11 @@
     </div>
     <div class="modal-backdrop fade show"></div>
     <ConfirmModal @ref="ConfirmCancel" OnConfirm="Cancel" />
-    <ConfirmModal @ref="ConfirmRemove" OnConfirm="async () => await Remove()" />
 }
 
 @code {
     private bool IsVisible { get; set; }
     private ConfirmModal ConfirmCancel = default!;
-    private ConfirmModal ConfirmRemove = default!;
     [SupplyParameterFromForm]
     private EventAtcPosition? Position { get; set; }
     [Parameter]
@@ -178,10 +176,6 @@
     private void ShowConfirmCancel()
     {
         ConfirmCancel.Show("Changes will not be saved", "Do you want to close without saving changes?");
-    }
-    private void ShowConfirmRemove()
-    {
-        ConfirmRemove.Show("Remove position", "Do you want to remove this position?");
     }
     private void AtcPositionChanged(Guid id){
         if (Position is not null)
