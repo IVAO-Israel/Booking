@@ -22,6 +22,34 @@
 	</div>
 } else
 {
+	<div>
+		<div class="row">
+			<div class="col"><label for="name" class="form-label">Name</label></div>
+			<div class="col">
+				<InputText id="name" class="form-control" @bind-Value="Event.Name" readonly/>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col"><label for="begintime" class="form-label">Begin time</label></div>
+			<div class="col">
+				<input type="datetime-local"
+					   id="begintime"
+					   class="form-control"
+					   @bind-value="Event.BeginTime"
+					   @bind-value:event="onchange" readonly/>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col"><label for="endtime" class="form-label">End time</label></div>
+			<div class="col">
+				<input type="datetime-local"
+					   id="begintime"
+					   class="form-control"
+					   @bind-value="Event.EndTime"
+					   @bind-value:event="onchange" readonly/>
+			</div>
+		</div>
+	</div>
 	<PositionsTimeline Event="Event"/>
 }
 
