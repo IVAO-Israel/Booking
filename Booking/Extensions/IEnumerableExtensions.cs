@@ -4,18 +4,18 @@ namespace Booking.Extensions
 {
     public static class IEnumerableExtensions
     {
-        private static readonly Dictionary<string, int> AtcPositionOrder = new Dictionary<string, int>
-            {
+        private static readonly Dictionary<string, int> AtcPositionOrder = new()
+        {
                 { "_DEL", 0 },
                 { "_GND", 1 },
                 { "_TWR", 2 },
                 { "_APP", 3 },
                 { "_CTR", 4 }
             };
-        private static readonly Regex AtcRegex = new Regex(string.Join("|", AtcPositionOrder.Keys), RegexOptions.Compiled);
+        private static readonly Regex AtcRegex = new(string.Join("|", AtcPositionOrder.Keys), RegexOptions.Compiled);
         public static IOrderedEnumerable<T> OrderByAtcPosition<T>(this IEnumerable<T> source, Func<T, string> selector)
         {
-            return source.OrderBy(selector).ThenBy(item =>
+            return source.OrderBy(item =>
             {
                 var value = selector(item);
                 var match = AtcRegex.Match(value);
@@ -25,7 +25,7 @@ namespace Booking.Extensions
                 }
                 // If no match, sort after known positions
                 return int.MaxValue;
-            });
+            }).ThenBy(selector);
         }
     }
 }
