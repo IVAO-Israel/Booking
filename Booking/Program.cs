@@ -102,7 +102,6 @@ namespace Booking
 
             builder.Services.AddScoped<IAdministratorService, DbAdministratorService>();
             builder.Services.AddScoped<IEventService, DbEventService>();
-            builder.Services.AddScoped<IAtcPositionService, DbAtcPositionService>();
             builder.Services.AddScoped<IEventAtcPositionService, DbEventAtcPositionService>();
             builder.Services.AddScoped<IAtcPositionBookingService, DbAtcPositionBookingService>();
             builder.Services.AddScoped<OidcConfigurationService>();
