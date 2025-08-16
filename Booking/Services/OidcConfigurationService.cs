@@ -4,8 +4,9 @@ namespace Booking.Services
 {
     public class OidcConfigurationService
     {
-        private readonly ConfigurationManager<OpenIdConnectConfiguration> _configurationManager;
-        public OidcConfigurationService()
+        private readonly IConfigurationManager<OpenIdConnectConfiguration> _configurationManager;
+
+        public OidcConfigurationService(IConfiguration config)
         {
             var authority = "https://api.ivao.aero";
             _configurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(

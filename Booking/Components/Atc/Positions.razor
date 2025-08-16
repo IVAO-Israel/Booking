@@ -15,7 +15,7 @@
 @if(Event is null)
 {
 	<div class="text-center"><div class="spinner-border"></div>Loading...</div>
-} else if (!IsAllowed && !IsAdmin)
+} else if (!IsAllowed)
 {
 	<div class="alert alert-danger text-center">
 		Only memebers of @DivisionId or members holding GCA are allowed to book ATC positions.
@@ -31,7 +31,6 @@
 	private Event? Event;
 	private string DivisionId = "unknown";
 	private bool IsAllowed = false;
-	private bool IsAdmin = false;
 	protected override void OnInitialized()
 	{
 		var divId = Configuration["DivisionId"]?.ToString().ToUpper();
@@ -49,9 +48,9 @@
 	}
 	private async Task Load()
 	{
-		IsAdmin = await IvaoUserService.GetIsAdmin();
 		string userDivId = await IvaoUserService.GetUserDivisionId();
-		if (userDivId.Equals(DivisionId, StringComparison.OrdinalIgnoreCase) || await IvaoUserService.UserHasGca())
+		await IvaoUserService.UserHasGca();
+		if(userDivId.Equals(DivisionId, StringComparison.OrdinalIgnoreCase) || await IvaoUserService.UserHasGca())
 		{
 			IsAllowed = true;
 		}
