@@ -52,11 +52,7 @@ namespace Booking.Services
         }
         async Task IEventAtcPositionService.LoadBookings(EventAtcPosition position)
         {
-            if (_dbContext.ChangeTracker.Entries<EventAtcPosition>().Where(e => e.Entity.Id == position.Id).FirstOrDefault() is null)
-            {
-                //Not already tracked to prevent exception
-                _dbContext.Entry(position).State = EntityState.Unchanged;
-            }
+            _dbContext.Entry(position).State = EntityState.Unchanged;
             await _dbContext.Entry(position).Collection(p => p.Bookings!).Query()
                 .Include(b => b.EventAtcPosition).LoadAsync();
             _dbContext.Entry(position).State = EntityState.Detached;
