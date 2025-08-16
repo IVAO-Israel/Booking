@@ -18,5 +18,10 @@ namespace Booking.Services
             var oidcConfig = await _configurationManager.GetConfigurationAsync(CancellationToken.None);
             return oidcConfig.UserInfoEndpoint;
         }
+        public async Task<string> GetTokenEndpointAsync()
+        {
+            var oidcConfig = await _configurationManager.GetConfigurationAsync(CancellationToken.None);
+            return oidcConfig.TokenEndpoint;
+        }
     }
 }
