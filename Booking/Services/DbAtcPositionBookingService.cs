@@ -34,13 +34,23 @@ namespace Booking.Services
         async Task IAtcPositionBookingService.RemoveAtcPositionBooking(AtcPositionBooking booking)
         {
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            dbContext.Entry(booking).State = EntityState.Deleted;
+            if (dbContext.Entry(booking).State == EntityState.Added)
+            {
+                dbContext.Entry(booking).State = EntityState.Detached;
+            }
+            else
+            {
+                dbContext.Entry(booking).State = EntityState.Deleted;
+            }
             await dbContext.SaveChangesAsync();
         }
         async Task IAtcPositionBookingService.UpdateAtcPositionBooking(AtcPositionBooking booking)
         {
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            dbContext.Entry(booking).State = EntityState.Modified;
+            if (dbContext.Entry(booking).State != EntityState.Added)
+            {
+                dbContext.Entry(booking).State = EntityState.Modified;
+            }
             await dbContext.SaveChangesAsync();
         }
     }
