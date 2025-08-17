@@ -8,8 +8,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Ivao\OpenApi\atc.json" />
+    <Content Remove="Ivao\OpenApi\core.json" />
+    <Content Remove="Ivao\OpenApi\data.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="7.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="NSwag.ApiDescription.Client" Version="13.18.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <ProjectReference Include="..\Booking.Client\Booking.Client.csproj" />
@@ -22,6 +36,12 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <OpenApiReference Include="Ivao\OpenApi\atc.json" Namespace="Booking.Ivao" ClassName="Atc" />
+    <OpenApiReference Include="Ivao\OpenApi\core.json" Namespace="Booking.Ivao" ClassName="Core" />
+    <OpenApiReference Include="Ivao\OpenApi\data.json" Namespace="Booking.Ivao" ClassName="Data" />
   </ItemGroup>
 
 </Project>
