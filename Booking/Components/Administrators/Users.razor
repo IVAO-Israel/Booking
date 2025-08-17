@@ -135,6 +135,8 @@
         {
             _currentUserVid = await IvaoUserService.GetUserIvaoId();
             DivisionId = DivisionId.ToUpper();
+            var admin = await AdministratorService.GetAdministrator(_currentUserVid);
+            admin?.EnsureIsAllowedDivision(DivisionId, NavigationManager);
             await Load();
         }
     }
@@ -142,10 +144,6 @@
     private async Task Load()
     {
         _admins = (await AdministratorService.GetAllAdministrators(DivisionId)).ToList();
-        if (!_admins.Where(a => a.IVAOUserId == _currentUserVid && (a.DivisionId == null || a.DivisionId == DivisionId)).Any())
-        {
-            NavigationManager.NavigateTo("accessdenied");
-        }
         await InvokeAsync(StateHasChanged);
     }
 
