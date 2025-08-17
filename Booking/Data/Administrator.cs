@@ -7,6 +7,6 @@ namespace Booking.Data
         [Key]
         public Guid Id { get; set; }
         public int IVAOUserId { get; set; }
-        public string DivisionId { get; set; } = default!;
+        public string? DivisionId { get; set; }
     }
 }

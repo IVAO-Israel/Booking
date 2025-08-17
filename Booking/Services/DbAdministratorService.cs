@@ -30,10 +30,10 @@ namespace Booking.Services
             dbContext.Entry(administrator).State = EntityState.Modified;
             await dbContext.SaveChangesAsync();
         }
-        async Task<List<Administrator>> IAdministratorService.GetAllAdministrators()
+        async Task<List<Administrator>> IAdministratorService.GetAllAdministrators(string divisionId)
         {
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Administrators.AsNoTracking().ToListAsync();
+            return await dbContext.Administrators.Where(a => a.DivisionId == divisionId).AsNoTracking().ToListAsync();
         }
     }
 }
