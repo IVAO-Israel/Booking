@@ -2,6 +2,8 @@ using System.Security.Claims;
 using Booking.Authorization;
 using Booking.Components;
 using Booking.Data;
+using Booking.Ivao.DTO;
+using Booking.Ivao.Services;
 using Booking.Services;
 using Booking.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
@@ -122,7 +124,7 @@ namespace Booking
             builder.Services.AddScoped<IAtcPositionBookingService, DbAtcPositionBookingService>();
             builder.Services.AddScoped<OidcConfigurationService>();
             builder.Services.AddScoped<HttpClient>();
-            builder.Services.AddScoped<IvaoUserService>();
+            builder.Services.AddScoped<UserService>();
 
             // Register handler for Administrator protection
             builder.Services.AddScoped<IAuthorizationHandler, AdministratorAuthorizationHandler>();

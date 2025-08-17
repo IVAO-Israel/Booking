@@ -1,11 +1,12 @@
 ﻿@using Booking.Data
 @using Booking.Extensions
-@using Booking.Services.Interfaces
+@using Booking.Ivao.Services
 @using Booking.Services
+@using Booking.Services.Interfaces
 @using Microsoft.EntityFrameworkCore
 @inject IEventAtcPositionService EventAtcPositionService
 @inject IEventService EventService
-@inject IvaoUserService IvaoUserService
+@inject UserService IvaoUserService
 @inject BookingDbContext DbContext
 @rendermode InteractiveServer
 <script>

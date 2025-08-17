@@ -1,5 +1,6 @@
 ﻿@page "/events/{EventUrl}/atc/positions"
 @using Booking.Data
+@using Booking.Ivao.Services
 @using Booking.Services
 @using Booking.Services.Interfaces
 @using Microsoft.AspNetCore.Authorization
@@ -7,7 +8,7 @@
 @inject IEventService EventService
 @inject IEventAtcPositionService EventAtcPositionService
 @inject NavigationManager NavigationManager
-@inject IvaoUserService IvaoUserService
+@inject UserService IvaoUserService
 @inject IConfiguration Configuration
 @rendermode InteractiveServer
 <PageTitle>Book ATC position</PageTitle>

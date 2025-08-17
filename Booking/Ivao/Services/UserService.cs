@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using Booking.Services.Interfaces;
+using Booking.Services;
+using Booking.Ivao.DTO;
 
-namespace Booking.Services
+namespace Booking.Ivao.Services
 {
-    public class IvaoUserService(
+    public class UserService(
         IAuthorizationService authorizationService,
         AuthenticationStateProvider authenticationStateProvider,
         OidcConfigurationService oidcConfigurationService,
@@ -145,11 +147,5 @@ namespace Booking.Services
             }
             return false;
         }
-    }
-    public class TokenData
-    {
-        public string AccessToken { get; set; } = string.Empty;
-        public string RefreshToken { get; set; } = string.Empty;
-        public DateTime ExpiresAt { get; set; }
     }
 }
