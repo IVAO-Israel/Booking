@@ -12,6 +12,7 @@ namespace Booking.Data
         public required string IVAOCallsign { get; set; }
         public required string Name { get; set; }
         public string? Description { get; set; }
+        public int? IVAOPositionId { get; set; }
         public override string ToString()
         {
             return $"{Name} ({IVAOCallsign})";
