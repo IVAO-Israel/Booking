@@ -7,6 +7,9 @@ namespace Booking.Data
         [Key]
         public Guid Id { get; set; }
         public int IVAOUserId { get; set; }
+        /// <summary>
+        /// If it's null, it can edit any division.
+        /// </summary>
         public string? DivisionId { get; set; }
     }
 }
