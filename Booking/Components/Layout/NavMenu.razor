@@ -13,13 +13,14 @@
                 </a>
             </div>
         </div>
-        <div class="nav-item">
-            <InputSelect class="form-control" Value="@DivisionId" ValueExpression="()=>DivisionId" ValueChanged="(string divId)=>DivisionChanged(divId)">
-                @foreach(string div in divisions)
+        <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" @onclick:preventDefault="true">Select Division</a>
+            <ul class="dropdown-menu">
+                @foreach (string div in divisions)
                 {
-                    <option>@div</option>
-                }    
-            </InputSelect>
+                    <li><a class="dropdown-item" href="@div">@div</a></li>
+                }
+            </ul>
         </div>
         <div class="nav-item">
             <NavLink class="nav-link" href="@DivisionId" Match="NavLinkMatch.All">
@@ -81,7 +82,11 @@
     {
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
-        var segments = currentUrl.ToUpper().Split('/', StringSplitOptions.RemoveEmptyEntries);
+        divisions = DbContext.Administrators.Select(a => a.DivisionId).Distinct().ToList()!;
+    }
+    protected override void OnParametersSet()
+    {
+        var segments = currentUrl!.ToUpper().Split('/', StringSplitOptions.RemoveEmptyEntries);
         var divId = segments.FirstOrDefault();
         if (divId is null)
         {
@@ -91,19 +96,11 @@
         {
             DivisionId = divId;
         }
-        divisions = DbContext.Administrators.Select(a => a.DivisionId).Distinct().ToList()!;
     }
-
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
         StateHasChanged();
-    }
-
-    private void DivisionChanged(string divisionId)
-    {
-        DivisionId = divisionId.ToUpper();
-        NavigationManager.NavigateTo(DivisionId);
     }
 
     public void Dispose()
