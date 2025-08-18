@@ -135,6 +135,9 @@ namespace Booking
             // Register handler for Administrator protection
             builder.Services.AddScoped<IAuthorizationHandler, RoleAuthorizationHandler>();
 
+            //IVAO services
+            builder.Services.AddScoped<AtcPositionService>();
+
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;

@@ -1,0 +1,129 @@
+﻿@page "/{DivisionId}/positions/admin"
+@using Booking.Extensions
+@using Booking.Ivao.Services
+@using Microsoft.AspNetCore.Authorization
+@using Booking.Data
+@using Booking.Services.Interfaces
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject IAtcPositionService PositionService
+@inject NavigationManager NavigationManager
+@inject IAdministratorService AdministratorService
+@inject UserService IvaoUserService
+@attribute [Authorize(Policy = "ATC")]
+@rendermode InteractiveServer
+<PageTitle>ATC positions</PageTitle>
+<script>
+	// Initialize all tooltips on the page
+	document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+	  new bootstrap.Tooltip(el);
+	});
+</script>
+<h1 class="text-center">ATC positions</h1>
+@if(Positions is null)
+{
+	<div class="text-center"><div class="spinner-border"></div>Loading...</div>
+} else
+{
+	<QuickGrid Items="Positions.AsQueryable()" Class="table table-bordered table-hover">
+		<PropertyColumn Property="@(p => p.IVAOCallsign)" Title="IVAO callsign" />
+		<PropertyColumn Property="@(p => p.Name)" Title="Name" />
+		<TemplateColumn TGridItem="AtcPosition">
+			<HeaderTemplate>
+				<div>
+					<button type="button" class="btn btn-success" @onclick="NewPosition">New position</button>
+				</div>
+			</HeaderTemplate>
+			<ChildContent Context="p">
+				<div>
+					<button type="button" class="btn btn-primary" @onclick="() => EditPosition(p)">Edit</button>
+					<button type="button" class="btn btn-danger" @onclick="() => ShowConfirmDelete(p)">Delete</button>
+				</div>
+			</ChildContent>
+		</TemplateColumn>
+	</QuickGrid>
+	<ConfirmModal @ref="ConfirmDelete" OnConfirm="async ()=> await DeleteEvent((AtcPosition?)ConfirmDelete?.Object)"/>
+	<AtcPositionModal @ref="Modal" OnAfterSubmit="UpdateUI"/>
+}
+
+@code {
+	[Parameter]
+	public string DivisionId { get; set; } = default!;
+	private List<AtcPosition>? Positions;
+	private ConfirmModal ConfirmDelete = default!;
+	private AtcPositionModal Modal = default!;
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			DivisionId = DivisionId.ToUpper();
+			var admin = await AdministratorService.GetAdministrator(await IvaoUserService.GetUserIvaoId());
+			admin?.EnsureIsAllowedDivision(DivisionId, NavigationManager);
+			await Load();
+		}
+	}
+	private async Task Load()
+	{
+		Positions = (await PositionService.GetAllAtcPositions(DivisionId)).OrderBy(p => p.IVAOCallsign).ToList();
+		await InvokeAsync(StateHasChanged);
+	}
+	private string Date(Event eventObj)
+	{
+		if(eventObj.BeginTime.Date == eventObj.BeginTime.Date)
+		{
+			return eventObj.BeginTime.ToDisplayDate();
+		} else
+		{
+			return $"{eventObj.BeginTime.ToDisplayDate()}-{eventObj.EndTime.ToDisplayDate()}";
+		}
+	}
+	private string Time(Event eventObj)
+	{
+		if (eventObj.BeginTime.Date == eventObj.BeginTime.Date)
+		{
+			return $"{eventObj.BeginTime.ToDisplayTime()}-{eventObj.EndTime.ToDisplayTime()}";
+		} else
+		{
+			return $"{eventObj.BeginTime.ToDisplayDate()} {eventObj.BeginTime.ToDisplayTime()}-{eventObj.EndTime.ToDisplayDate()} {eventObj.EndTime.ToDisplayTime()}";
+		}
+	}
+	private void ShowConfirmDelete(AtcPosition position){
+		ConfirmDelete.Show("Delete ATC position", $"Do you want to delete {position.ToString()}?", position);
+	}
+	private void EditPosition(AtcPosition position)
+	{
+		Modal.Show(position, false, false);
+	}
+	private void NewPosition()
+	{
+		Modal.Show(new()
+		{
+			Id = Guid.NewGuid(),
+			DivisionId = DivisionId
+		}, true, false);
+	}
+	private async Task DeleteEvent(AtcPosition? position)
+	{
+		if (position is not null)
+		{
+			await PositionService.RemoveAtcPosition(position);
+			Positions?.Remove(position);
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+	private void UpdateUI(AtcPosition position, bool New)
+	{
+		if (New)
+		{
+			Positions?.Add(position);
+		}
+		else
+		{
+			int? index = Positions?.FindIndex(p => p.Id == position.Id);
+			if (index is int i && Positions is not null)
+			{
+				Positions[i] = position;
+			}
+		}
+		StateHasChanged();
+	}
+}
