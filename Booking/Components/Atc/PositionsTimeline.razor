@@ -164,7 +164,7 @@
     }
 </div>
 <BookingModal @ref="BookingModal" CurrentIvaoUserAtcRating="CurrentIvaoUserAtcRating" OnAfterSubmitAsync="UpdateUIBooking" IsAdmin="IsAdmin"/>
-<PositionModal @ref="PositionModal" OnAfterSubmitAsync="UpdateUIPositions" DivisionId="DivisionId"/>
+<PositionModal @ref="PositionModal" OnAfterSubmitAsync="UpdateUIPositions" DivisionId="@DivisionId"/>
 
 @code {
     [Parameter, EditorRequired]
@@ -173,6 +173,8 @@
     private double Step;
     [Parameter]
     public bool IsAdmin { get; set; } = false;
+    [Parameter]
+    public string DivisionId { get; set; } = default!;
     private int CurrentIvaoUserId;
     private int CurrentIvaoUserAtcRating;
     private BookingModal? BookingModal;
