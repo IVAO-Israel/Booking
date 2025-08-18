@@ -1,7 +1,7 @@
 ﻿@page "/{DivisionId}/administrators/users"
 @using Booking.Ivao.Services
 @using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Policy = "Administrator")]
+@attribute [Authorize(Policy = "DIR")]
 @inject IAdministratorService AdministratorService
 @inject UserService IvaoUserService
 @inject NavigationManager NavigationManager
@@ -75,11 +75,6 @@
                             <label>IVAO User ID</label>
                             <InputNumber @bind-Value="_adminForm.IVAOUserId" class="form-control" placeholder="Enter IVAO User ID" />
                             <ValidationMessage For="@(() => _adminForm.IVAOUserId)" />
-                        </div>
-
-                        <div class="form-group">
-                            <label>Division</label>
-                            <InputText @bind-Value="_adminForm.DivisionId" class="form-control" placeholder="Enter Division" />
                         </div>
 
                         <div class="form-actions">
@@ -163,7 +158,6 @@
         {
             Id = admin.Id,
             IVAOUserId = admin.IVAOUserId,
-            DivisionId = admin.DivisionId
         };
         _showModal = true;
     }
@@ -188,16 +182,11 @@
 
     private async Task SaveAdmin()
     {
-        string? divId = null;
-        if(!string.IsNullOrEmpty(_adminForm.DivisionId))
-        {
-            divId = _adminForm.DivisionId.ToUpper(); 
-        }
         var newAdmin = new Administrator
             {
                 Id = Guid.Empty,
                 IVAOUserId = _adminForm.IVAOUserId,
-                DivisionId = divId
+                DivisionId = DivisionId,
             };
         await AdministratorService.AddAdministrator(newAdmin);
         _admins.Add(newAdmin);
@@ -223,6 +212,5 @@
         [Required(ErrorMessage = "IVAO VID is required")]
         [Range(1, int.MaxValue, ErrorMessage = "Please enter a valid IVAO VID")]
         public int IVAOUserId { get; set; }
-        public string? DivisionId { get; set; }
     }
 }
