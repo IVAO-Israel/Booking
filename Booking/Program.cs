@@ -114,8 +114,14 @@ namespace Booking
             });
 
             // Authorization
-            builder.Services.AddAuthorizationBuilder().AddPolicy("Administrator", policy => policy.Requirements.Add(new AdministratorRequirement()));
-            
+            builder.Services.AddAuthorizationBuilder()
+                .AddPolicy("ADMIN", policy => policy.Requirements.Add(new RoleRequirement("ADMIN")))
+                .AddPolicy("DIR", policy => policy.Requirements.Add(new RoleRequirement("DIR")))
+                .AddPolicy("EVENT", policy => policy.Requirements.Add(new RoleRequirement("EVENT")))
+                .AddPolicy("ATC", policy => policy.Requirements.Add(new RoleRequirement("ATC")))
+                .AddPolicy("FLIGHT", policy => policy.Requirements.Add(new RoleRequirement("FLIGHT")));
+
+
             builder.Services.AddSingleton<ITokenCacheService, InMemoryTokenCacheService>();
             builder.Services.AddScoped<IAdministratorService, DbAdministratorService>();
             builder.Services.AddScoped<IEventService, DbEventService>();
@@ -127,7 +133,7 @@ namespace Booking
             builder.Services.AddScoped<UserService>();
 
             // Register handler for Administrator protection
-            builder.Services.AddScoped<IAuthorizationHandler, AdministratorAuthorizationHandler>();
+            builder.Services.AddScoped<IAuthorizationHandler, RoleAuthorizationHandler>();
 
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {

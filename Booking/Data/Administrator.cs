@@ -12,9 +12,10 @@ namespace Booking.Data
         /// If it's null, it can edit any division.
         /// </summary>
         public string? DivisionId { get; set; }
+        public IList<AdministratorRole>? Roles { get; set; }
         public bool IsAllowedDivision(string divisionId)
         {
-            if(DivisionId is null || divisionId == DivisionId)
+            if(divisionId == DivisionId || (Roles is not null && Roles.Where(r => r.Role == "ADMIN").Any()))
             {
                 return true;
             }
