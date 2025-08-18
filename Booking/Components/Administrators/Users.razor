@@ -1,8 +1,10 @@
-﻿@page "/administrators/users"
+﻿@page "/{DivisionId}/administrators/users"
+@using Booking.Ivao.Services
 @using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Policy = "Administrator")]
+@attribute [Authorize(Policy = "DIR")]
 @inject IAdministratorService AdministratorService
-@inject IvaoUserService IvaoUserService
+@inject UserService IvaoUserService
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 @using System.ComponentModel.DataAnnotations
 @using Booking.Services
@@ -74,7 +76,6 @@
                             <InputNumber @bind-Value="_adminForm.IVAOUserId" class="form-control" placeholder="Enter IVAO User ID" />
                             <ValidationMessage For="@(() => _adminForm.IVAOUserId)" />
                         </div>
-                        
 
                         <div class="form-actions">
                             <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
@@ -118,6 +119,8 @@
 
 
 @code {
+    [Parameter]
+    public string DivisionId { get; set; } = default!;
     private List<Administrator> _admins = new();
     private AdminFormModel _adminForm = new();
     private Administrator? _adminToDelete;
@@ -130,13 +133,16 @@
         if (firstRender)
         {
             _currentUserVid = await IvaoUserService.GetUserIvaoId();
+            DivisionId = DivisionId.ToUpper();
+            var admin = await AdministratorService.GetAdministrator(_currentUserVid);
+            admin?.EnsureIsAllowedDivision(DivisionId, NavigationManager);
             await Load();
         }
     }
 
     private async Task Load()
     {
-        _admins = (await AdministratorService.GetAllAdministrators()).ToList();
+        _admins = (await AdministratorService.GetAllAdministrators(DivisionId)).ToList();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -151,7 +157,7 @@
         _adminForm = new AdminFormModel
         {
             Id = admin.Id,
-            IVAOUserId = admin.IVAOUserId
+            IVAOUserId = admin.IVAOUserId,
         };
         _showModal = true;
     }
@@ -179,7 +185,8 @@
         var newAdmin = new Administrator
             {
                 Id = Guid.Empty,
-                IVAOUserId = _adminForm.IVAOUserId
+                IVAOUserId = _adminForm.IVAOUserId,
+                DivisionId = DivisionId,
             };
         await AdministratorService.AddAdministrator(newAdmin);
         _admins.Add(newAdmin);

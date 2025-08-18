@@ -18,10 +18,10 @@ namespace Booking.Services
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
             return await dbContext.Events.FindAsync(id);
         }
-        async Task<Event?> IEventService.GetEventByUrl(string url)
+        async Task<Event?> IEventService.GetEventByUrl(string divisionId, string url)
         {
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Events.Where(e => e.Url == url).AsNoTracking().FirstOrDefaultAsync();
+            return await dbContext.Events.Where(e => e.DivisionId == divisionId && e.Url == url).AsNoTracking().FirstOrDefaultAsync();
         }
         async Task IEventService.LoadAvailableAtcPositions(Event eventObj)
         {
@@ -66,20 +66,22 @@ namespace Booking.Services
             }
             await dbContext.SaveChangesAsync();
         }
-        async Task<List<Event>> IEventService.GetAllEvents()
+        async Task<List<Event>> IEventService.GetAllEvents(string divisionId)
         {
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Events.AsNoTracking().ToListAsync();
+            return await dbContext.Events.Where(e => e.DivisionId == divisionId).AsNoTracking().ToListAsync();
         }
-        async Task<List<Event>> IEventService.GetUpcomingEvents()
+        async Task<List<Event>> IEventService.GetUpcomingEvents(string divisionId)
         {
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible).AsNoTracking().ToListAsync();
+            return await dbContext.Events.Where(e => e.DivisionId == divisionId)
+                .Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible).AsNoTracking().ToListAsync();
         }
-        async Task<List<Event>> IEventService.GetUpcomingEventsForAtc()
+        async Task<List<Event>> IEventService.GetUpcomingEventsForAtc(string divisionId)
         {
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Events.Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible && e.AvailableAtcPositions != null && e.AvailableAtcPositions.Any()).AsNoTracking().ToListAsync();
+            return await dbContext.Events.Where(e => e.DivisionId == divisionId)
+                .Where(e => e.BeginTime > DateTime.UtcNow && e.IsVisible && e.AvailableAtcPositions != null && e.AvailableAtcPositions.Any()).AsNoTracking().ToListAsync();
         }
     }
 }

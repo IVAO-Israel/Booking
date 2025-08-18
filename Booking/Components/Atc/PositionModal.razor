@@ -6,7 +6,7 @@
 @using System.ComponentModel.DataAnnotations.Schema
 @inject IEventAtcPositionService EventAtcPositionService
 @inject IAtcPositionService AtcPositionService
-@attribute [Authorize (Policy="Administrator")]
+@attribute [Authorize (Policy="ATC")]
 @rendermode InteractiveServer
 @if (IsVisible && Position != null)
 {
@@ -96,6 +96,8 @@
     private ConfirmModal ConfirmRemove = default!;
     [SupplyParameterFromForm]
     private EventAtcPosition? Position { get; set; }
+    [Parameter]
+    public string DivisionId { get; set; } = default!;
     private string AtcPositionName = default!;
     [Parameter]
     public int CurrentIvaoUserAtcRating { get; set; }
@@ -109,7 +111,7 @@
     private List<(string, int)> ratings = [];
     protected override async Task OnInitializedAsync()
     {
-        positions = (await AtcPositionService.GetAllAtcPositions()).OrderByAtcPosition(p => p.IVAOCallsign).ToList();
+        positions = (await AtcPositionService.GetAllAtcPositions(DivisionId)).OrderByAtcPosition(p => p.IVAOCallsign).ToList();
         var fields = typeof(AtcRating).GetFields(BindingFlags.Public | BindingFlags.Static);
         foreach(var field in fields)
         {

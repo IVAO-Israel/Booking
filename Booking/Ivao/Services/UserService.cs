@@ -1,14 +1,16 @@
-﻿using System.Security.Claims;
+﻿using System.Net.Http.Headers;
+using System.Security.Claims;
+using Booking.Ivao.DTO;
+using Booking.Services;
+using Booking.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Newtonsoft.Json;
-using System.Net.Http.Headers;
-using Booking.Services.Interfaces;
+using System.Text.Json;
 
-namespace Booking.Services
+namespace Booking.Ivao.Services
 {
-    public class IvaoUserService(
+    public class UserService(
         IAuthorizationService authorizationService,
         AuthenticationStateProvider authenticationStateProvider,
         OidcConfigurationService oidcConfigurationService,
@@ -54,6 +56,7 @@ namespace Booking.Services
                 string endpoint = await _oidcConfigurationService.GetUserInfoEndpointAsync();
                 var response = await _httpClient.GetAsync(endpoint);
                 response.EnsureSuccessStatusCode();
+                await RefreshToken(tokenData.RefreshToken, userId);
                 return await response.Content.ReadAsStringAsync();
             }
             catch (HttpRequestException)
@@ -90,21 +93,24 @@ namespace Booking.Services
                 return null;
 
             var json = await response.Content.ReadAsStringAsync();
-            dynamic obj = JsonConvert.DeserializeObject(json)!;
-
-            var newAccessToken = (string)obj.access_token;
-            var newRefreshToken = obj.refresh_token != null ? (string)obj.refresh_token : refreshToken;
-            var expiresIn = (int)obj.expires_in;
-
-            var newTokenData = new TokenData
+            var obj = JsonSerializer.Deserialize<ReceivedToken>(json);
+            if (obj is not null)
             {
-                AccessToken = newAccessToken,
-                RefreshToken = newRefreshToken,
-                ExpiresAt = DateTime.UtcNow.AddSeconds(expiresIn - 60) // buffer 1 min
-            };
+                var newAccessToken = (string)obj.access_token;
+                var newRefreshToken = obj.refresh_token != null ? (string)obj.refresh_token : refreshToken;
+                var expiresIn = (int)obj.expires_in;
 
-            await _tokenCacheService.StoreTokensAsync(userId, newTokenData);
-            return newTokenData;
+                var newTokenData = new TokenData
+                {
+                    AccessToken = newAccessToken,
+                    RefreshToken = newRefreshToken,
+                    ExpiresAt = DateTime.UtcNow.AddSeconds(expiresIn - 60) // buffer 1 min
+                };
+
+                await _tokenCacheService.StoreTokensAsync(userId, newTokenData);
+                return newTokenData;
+            }
+            return null;
         }
         public async Task<int> GetUserIvaoId()
         {
@@ -113,43 +119,39 @@ namespace Booking.Services
             var vid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return vid != null && int.TryParse(vid, out var id) ? id : 0;
         }
-        public async Task<bool> GetIsAdmin()
+        public async Task<bool> GetIsRole(string role)
         {
             var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
-            var result = await _authorizationService.AuthorizeAsync(user, "Administrator");
+            var result = await _authorizationService.AuthorizeAsync(user, role);
             return result.Succeeded;
         }
         public async Task<string> GetUserDivisionId()
         {
             var json = await GetUserData();
-            dynamic? obj = JsonConvert.DeserializeObject(json!);
+            var obj = JsonSerializer.Deserialize<UserInfo>(json);
             return obj?.divisionId!;
         }
         public async Task<int> GetUserAtcRating()
         {
             var json = await GetUserData();
-            dynamic? obj = JsonConvert.DeserializeObject(json!);
-            return obj?.rating.atcRating.id;
+            var obj = JsonSerializer.Deserialize<UserInfo>(json);
+            return obj?.rating.atcRating.id ?? 0;
         }
-        public async Task<bool> UserHasGca()
+        public async Task<bool> UserHasGca(string divisionId)
         {
             var json = await GetUserData();
-            dynamic? obj = JsonConvert.DeserializeObject(json!);
-            Newtonsoft.Json.Linq.JArray gcas = obj?.gcas!;
-            var divId = _configuration["DivisionId"]?.ToString().ToUpper();
-            foreach (var gca in gcas)
+            var obj = JsonSerializer.Deserialize<UserInfo>(json);
+            if (obj is not null)
             {
-                if (gca.ToString().Equals(divId, StringComparison.OrdinalIgnoreCase))
-                    return true;
+                var gcas = obj.gcas;
+                foreach (var gca in gcas)
+                {
+                    if (gca.Equals(divisionId, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
             }
             return false;
         }
-    }
-    public class TokenData
-    {
-        public string AccessToken { get; set; } = string.Empty;
-        public string RefreshToken { get; set; } = string.Empty;
-        public DateTime ExpiresAt { get; set; }
     }
 }

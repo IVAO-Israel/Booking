@@ -19,7 +19,9 @@ namespace Booking.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    IVAOUserId = table.Column<int>(type: "int", nullable: false)
+                    IVAOUserId = table.Column<int>(type: "int", nullable: false),
+                    DivisionId = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -37,6 +39,9 @@ namespace Booking.Migrations
                     Name = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IVAOPositionId = table.Column<int>(type: "int", nullable: true),
+                    DivisionId = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
@@ -56,6 +61,8 @@ namespace Booking.Migrations
                     EndTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     IsVisible = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     Url = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DivisionId = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
@@ -73,7 +80,9 @@ namespace Booking.Migrations
                     AtcPositionId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     BeginTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     EndTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    RequiredRating = table.Column<int>(type: "int", nullable: false)
+                    RequiredRating = table.Column<int>(type: "int", nullable: false),
+                    DivisionId = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {

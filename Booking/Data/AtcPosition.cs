@@ -9,9 +9,11 @@ namespace Booking.Data
     {
         [Key]
         public Guid Id { get; set; }
-        public required string IVAOCallsign { get; set; }
-        public required string Name { get; set; }
+        public string IVAOCallsign { get; set; } = default!;
+        public string Name { get; set; } = default!;
         public string? Description { get; set; }
+        public int? IVAOPositionId { get; set; }
+        public string DivisionId { get; set; } = default!;
         public override string ToString()
         {
             return $"{Name} ({IVAOCallsign})";

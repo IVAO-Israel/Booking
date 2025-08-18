@@ -20,6 +20,7 @@ namespace Booking.Data
         public DateTime EndTime { get; set; }
         public bool IsVisible { get; set; }
         public string? Url { get; set; }
+        public string DivisionId { get; set; } = default!;
         public ICollection<EventAtcPosition>? AvailableAtcPositions { get; set; }
     }
 }

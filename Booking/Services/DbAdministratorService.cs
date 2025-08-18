@@ -22,7 +22,8 @@ namespace Booking.Services
         async Task<Administrator?> IAdministratorService.GetAdministrator(int IVAOUserId)
         {
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Administrators.Where(a => a.IVAOUserId == IVAOUserId).AsNoTracking().FirstOrDefaultAsync();
+            return await dbContext.Administrators.Where(a => a.IVAOUserId == IVAOUserId)
+                .Include(a => a.Roles).AsNoTracking().FirstOrDefaultAsync();
         }
         async Task IAdministratorService.UpdateAdministrator(Administrator administrator)
         {
@@ -30,10 +31,11 @@ namespace Booking.Services
             dbContext.Entry(administrator).State = EntityState.Modified;
             await dbContext.SaveChangesAsync();
         }
-        async Task<List<Administrator>> IAdministratorService.GetAllAdministrators()
+        async Task<List<Administrator>> IAdministratorService.GetAllAdministrators(string divisionId)
         {
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Administrators.AsNoTracking().ToListAsync();
+            return await dbContext.Administrators.Where(a => a.DivisionId == divisionId)
+                .Include(a => a.Roles).AsNoTracking().ToListAsync();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿@page "/events/upcoming"
+﻿@page "/{DivisionId}/events/upcoming"
 @using Booking.Extensions
 @using Microsoft.AspNetCore.Authorization
 @using Booking.Data
@@ -59,17 +59,20 @@
 }
 
 @code {
+	[Parameter]
+	public string DivisionId { get; set; } = default!;
 	private List<Event>? Events;
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (firstRender)
 		{
+			DivisionId = DivisionId.ToUpper();
 			await Load();
 		}
 	}
 	private async Task Load()
 	{
-		Events = (await EventService.GetUpcomingEvents()).OrderBy(e => e.BeginTime).ToList();
+		Events = (await EventService.GetUpcomingEvents(DivisionId)).OrderBy(e => e.BeginTime).ToList();
 		foreach(Event e in Events)
 		{
 			await EventService.LoadAvailableAtcPositions(e);
@@ -98,7 +101,7 @@
 	}
 	private void BookAtc(Event eventObj)
 	{
-		NavigationManager.NavigateTo($"events/{eventObj.Url}/atc/positions");
+		NavigationManager.NavigateTo($"{DivisionId}/events/{eventObj.Url}/atc/positions");
 	}
 	private void BookFlight(Event eventObj)
 	{

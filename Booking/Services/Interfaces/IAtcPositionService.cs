@@ -9,6 +9,6 @@ namespace Booking.Services.Interfaces
         public Task<AtcPosition?> GetAtcPosition(string IVAOCallsign);
         public Task UpdateAtcPosition(AtcPosition position);
         public Task RemoveAtcPosition(AtcPosition position);
-        public Task<List<AtcPosition>> GetAllAtcPositions();
+        public Task<List<AtcPosition>> GetAllAtcPositions(string divisionId);
     }
 }

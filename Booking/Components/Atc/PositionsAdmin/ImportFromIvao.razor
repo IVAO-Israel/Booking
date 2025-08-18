@@ -1,0 +1,94 @@
+﻿@page "/{DivisionId}/positions/admin/import"
+@using Microsoft.AspNetCore.Authorization
+@using Booking.Ivao.DTO
+@using Booking.Ivao.Services
+@using Booking.Services.Interfaces
+@inject AtcPositionService IvaoAtcPositionService
+@inject IAtcPositionService DbAtcPositionService
+@inject NavigationManager NavigationManager
+@attribute [Authorize(Policy = "ATC")]
+@rendermode InteractiveServer
+
+<PageTitle>ATC positions</PageTitle>
+
+<h1 class="text-center">Import ATC positions from IVAO</h1>
+
+<div class="mb-3 d-flex gap-2">
+    <InputText @bind-Value="searchTerm" class="form-control" placeholder="Enter position string" />
+    <button class="btn btn-primary" @onclick="() => Load(searchTerm)">Search</button>
+</div>
+
+@if (foundPositions is not null && foundPositions.Any())
+{
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>IVAO Callsign</th>
+                <th>Select</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var pos in foundPositions)
+            {
+                <tr>
+                    <td>@pos.Result.ComposePosition</td>
+                    <td>
+                        <InputCheckbox @bind-Value="pos.Selected" class="form-check" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button class="btn btn-success mt-2" @onclick="ImportSelected">Import Selected</button>
+}
+
+@code {
+    [Parameter]
+    public string DivisionId { get; set; } = default!;
+
+    private string searchTerm = string.Empty;
+    private List<SearchPositionResultWrapper>? foundPositions;
+
+    private async Task Load(string position)
+    {
+        position = position.ToUpper();
+        var results = await IvaoAtcPositionService.GetAtcPositionsList(position);
+        foundPositions = results.Select(r => new SearchPositionResultWrapper { Result = r, Selected = false }).ToList();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ImportSelected()
+    {
+        if (foundPositions is null) return;
+
+        var selectedPositions = foundPositions
+            .Where(p => p.Selected)
+            .Select(p => p.Result)
+            .ToList();
+
+        if (selectedPositions.Any())
+        {
+            var positions = await DbAtcPositionService.GetAllAtcPositions(DivisionId);
+            foreach(var position in selectedPositions)
+            {
+                if(!positions.Where(p => p.IVAOCallsign == position.ComposePosition).Any()){
+                    await DbAtcPositionService.AddAtcPosition(new()
+                        {
+                            Id = Guid.NewGuid(),
+                            IVAOCallsign = position.ComposePosition,
+                            Name = position.ComposePosition,
+                            IVAOPositionId = position.Id,
+                            DivisionId = DivisionId
+                        });
+                }
+            }
+        }
+        NavigationManager.NavigateTo($"{DivisionId}/positions/admin");
+    }
+    public class SearchPositionResultWrapper
+    {
+        public SearchPositionResult Result { get; set; } = default!;
+        public bool Selected { get; set; }
+    }
+}
