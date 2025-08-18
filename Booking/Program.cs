@@ -2,6 +2,8 @@ using System.Security.Claims;
 using Booking.Authorization;
 using Booking.Components;
 using Booking.Data;
+using Booking.Ivao.DTO;
+using Booking.Ivao.Services;
 using Booking.Services;
 using Booking.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
@@ -112,9 +114,15 @@ namespace Booking
             });
 
             // Authorization
-            builder.Services.AddAuthorizationBuilder().AddPolicy("Administrator", policy => policy.Requirements.Add(new AdministratorRequirement()));
-            
-            builder.Services.AddSingleton<ITokenCacheService, InMemoryTokenCacheService>();
+            builder.Services.AddAuthorizationBuilder()
+                .AddPolicy("ADMIN", policy => policy.Requirements.Add(new RoleRequirement("ADMIN")))
+                .AddPolicy("DIR", policy => policy.Requirements.Add(new RoleRequirement("DIR")))
+                .AddPolicy("EVENT", policy => policy.Requirements.Add(new RoleRequirement("EVENT")))
+                .AddPolicy("ATC", policy => policy.Requirements.Add(new RoleRequirement("ATC")))
+                .AddPolicy("FLIGHT", policy => policy.Requirements.Add(new RoleRequirement("FLIGHT")));
+
+
+            builder.Services.AddSingleton<ITokenCacheService, DbTokenCacheService>();
             builder.Services.AddScoped<IAdministratorService, DbAdministratorService>();
             builder.Services.AddScoped<IEventService, DbEventService>();
             builder.Services.AddScoped<IAtcPositionService, DbAtcPositionService>();
@@ -122,10 +130,13 @@ namespace Booking
             builder.Services.AddScoped<IAtcPositionBookingService, DbAtcPositionBookingService>();
             builder.Services.AddScoped<OidcConfigurationService>();
             builder.Services.AddScoped<HttpClient>();
-            builder.Services.AddScoped<IvaoUserService>();
+            builder.Services.AddScoped<UserService>();
 
             // Register handler for Administrator protection
-            builder.Services.AddScoped<IAuthorizationHandler, AdministratorAuthorizationHandler>();
+            builder.Services.AddScoped<IAuthorizationHandler, RoleAuthorizationHandler>();
+
+            //IVAO services
+            builder.Services.AddScoped<AtcPositionService>();
 
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {

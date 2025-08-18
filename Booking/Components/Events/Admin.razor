@@ -1,14 +1,17 @@
-﻿@page "/events/admin"
+﻿@page "/{DivisionId}/events/admin"
 @using Booking.Extensions
+@using Booking.Ivao.Services
 @using Microsoft.AspNetCore.Authorization
 @using Booking.Data
 @using Booking.Services.Interfaces
 @using Microsoft.AspNetCore.Components.QuickGrid
 @inject IEventService EventService
 @inject NavigationManager NavigationManager
-@attribute [Authorize(Policy = "Administrator")]
+@inject IAdministratorService AdministratorService
+@inject UserService IvaoUserService
+@attribute [Authorize(Policy = "EVENT")]
 @rendermode InteractiveServer
-<PageTitle>Upcoming events</PageTitle>
+<PageTitle>Event administration</PageTitle>
 <script>
 	// Initialize all tooltips on the page
 	document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
@@ -49,6 +52,8 @@
 }
 
 @code {
+	[Parameter]
+	public string DivisionId { get; set; } = default!;
 	private List<Event>? Events;
 	private ConfirmModal ConfirmDelete = default!;
 	private EventModal Modal = default!;
@@ -56,12 +61,15 @@
 	{
 		if (firstRender)
 		{
+			DivisionId = DivisionId.ToUpper();
+			var admin = await AdministratorService.GetAdministrator(await IvaoUserService.GetUserIvaoId());
+			admin?.EnsureIsAllowedDivision(DivisionId, NavigationManager);
 			await Load();
 		}
 	}
 	private async Task Load()
 	{
-		Events = (await EventService.GetAllEvents()).OrderBy(e => e.BeginTime).ToList();
+		Events = (await EventService.GetAllEvents(DivisionId)).OrderBy(e => e.BeginTime).ToList();
 		foreach(Event e in Events)
 		{
 			await EventService.LoadAvailableAtcPositions(e);
@@ -97,7 +105,12 @@
 	}
 	private void NewEvent()
 	{
-		Modal.Show(new(), true, false);
+		Modal.Show(new()
+		{
+			BeginTime = DateTime.UtcNow,
+			EndTime = DateTime.UtcNow.AddHours(1),
+			DivisionId = DivisionId
+		}, true, false);
 	}
 	private async Task DeleteEvent(Event? eventObj)
 	{
@@ -126,6 +139,6 @@
 	}
 	private void AtcPositions(Event eventObj)
 	{
-		NavigationManager.NavigateTo($"events/{eventObj.Url}/atc/positions");
+		NavigationManager.NavigateTo($"{DivisionId}/events/{eventObj.Url}/atc/positions");
 	}
 }

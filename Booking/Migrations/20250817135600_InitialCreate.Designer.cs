@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Booking.Migrations
 {
     [DbContext(typeof(BookingDbContext))]
-    [Migration("20250813073551_InitialCreate")]
+    [Migration("20250817135600_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -31,6 +31,9 @@ namespace Booking.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<string>("DivisionId")
+                        .HasColumnType("longtext");
+
                     b.Property<int>("IVAOUserId")
                         .HasColumnType("int");
 
@@ -48,9 +51,16 @@ namespace Booking.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("DivisionId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("IVAOCallsign")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<int?>("IVAOPositionId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -95,6 +105,10 @@ namespace Booking.Migrations
                     b.Property<DateTime>("BeginTime")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("DivisionId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime(6)");
 
@@ -124,6 +138,10 @@ namespace Booking.Migrations
 
                     b.Property<DateTime>("BeginTime")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DivisionId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime(6)");

@@ -21,6 +21,7 @@ namespace Booking.Data
         [Required]
         public required DateTime EndTime { get; set; }
         public int RequiredRating { get; set; }
+        public string DivisionId { get; set; } = default!;
         public ICollection<AtcPositionBooking>? Bookings { get; set; }
         /// <summary>
         /// Check if position can be booked based on user ATC rating.

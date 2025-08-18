@@ -1,0 +1,30 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IAuthorizationService AuthorizationService
+@inject AuthenticationStateProvider AuthStateProvider
+
+@if (isAuthorized)
+{
+    @Authorized
+}
+
+@code {
+    [Parameter] public RenderFragment? Authorized { get; set; }
+    [Parameter] public string[] Roles { get; set; } = Array.Empty<string>();
+    private bool isAuthorized;
+    protected override async Task OnParametersSetAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        isAuthorized = false;
+        foreach (var role in Roles)
+        {
+            var result = await AuthorizationService.AuthorizeAsync(user, role);
+            if (result.Succeeded)
+            {
+                isAuthorized = true;
+                return;
+            }
+        }
+    }
+}

@@ -1,5 +1,6 @@
-﻿@page "/events/{EventUrl}/atc/positions"
+﻿@page "/{DivisionId}/events/{EventUrl}/atc/positions"
 @using Booking.Data
+@using Booking.Ivao.Services
 @using Booking.Services
 @using Booking.Services.Interfaces
 @using Microsoft.AspNetCore.Authorization
@@ -7,7 +8,7 @@
 @inject IEventService EventService
 @inject IEventAtcPositionService EventAtcPositionService
 @inject NavigationManager NavigationManager
-@inject IvaoUserService IvaoUserService
+@inject UserService IvaoUserService
 @inject IConfiguration Configuration
 @rendermode InteractiveServer
 <PageTitle>Book ATC position</PageTitle>
@@ -70,40 +71,34 @@
 			</div>
 		</div>
 	</div>
-	<PositionsTimeline Event="Event"/>
+	<PositionsTimeline Event="Event" IsAdmin="IsAdmin" DivisionId="@DivisionId"/>
 }
 
 @code {
 	[Parameter]
 	public string EventUrl { get; set; } = default!;
+	[Parameter]
+	public string DivisionId { get; set; } = default!;
 	private Event? Event;
-	private string DivisionId = "unknown";
 	private bool IsAllowed = false;
 	private bool IsAdmin = false;
-	protected override void OnInitialized()
-	{
-		var divId = Configuration["DivisionId"]?.ToString().ToUpper();
-		if(divId is not null)
-		{
-			DivisionId = divId;
-		}
-	}
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (firstRender)
 		{
+			DivisionId = DivisionId.ToUpper();
 			await Load();
 		}
 	}
 	private async Task Load()
 	{
-		IsAdmin = await IvaoUserService.GetIsAdmin();
+		IsAdmin = await IvaoUserService.GetIsRole("ATC");
 		string userDivId = await IvaoUserService.GetUserDivisionId();
-		if (userDivId.Equals(DivisionId, StringComparison.OrdinalIgnoreCase) || await IvaoUserService.UserHasGca())
+		if (userDivId.Equals(DivisionId, StringComparison.OrdinalIgnoreCase) || await IvaoUserService.UserHasGca(DivisionId))
 		{
 			IsAllowed = true;
 		}
-		Event = await EventService.GetEventByUrl(EventUrl);
+		Event = await EventService.GetEventByUrl(DivisionId, EventUrl);
 		if (Event is null)
 		{
 			if (IsAdmin && Guid.TryParse(EventUrl, out Guid id))
@@ -111,12 +106,16 @@
 				Event = await EventService.GetEvent(id);
 				if(Event is null)
 				{
-					NavigationManager.NavigateTo("events/admin");
+					NavigationManager.NavigateTo($"{DivisionId}/events/admin");
+				}
+				else
+				{
+					await EventService.LoadAvailableAtcPositions(Event);
 				}
 			}
 			else
 			{
-				NavigationManager.NavigateTo("events/upcoming");
+				NavigationManager.NavigateTo($"{DivisionId}/events/upcoming");
 			}
 		}
 		else
