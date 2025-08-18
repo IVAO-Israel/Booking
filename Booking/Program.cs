@@ -122,7 +122,7 @@ namespace Booking
                 .AddPolicy("FLIGHT", policy => policy.Requirements.Add(new RoleRequirement("FLIGHT")));
 
 
-            builder.Services.AddSingleton<ITokenCacheService, InMemoryTokenCacheService>();
+            builder.Services.AddSingleton<ITokenCacheService, DbTokenCacheService>();
             builder.Services.AddScoped<IAdministratorService, DbAdministratorService>();
             builder.Services.AddScoped<IEventService, DbEventService>();
             builder.Services.AddScoped<IAtcPositionService, DbAtcPositionService>();

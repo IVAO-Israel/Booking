@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Booking.Ivao.DTO;
+using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Data
 {
@@ -28,5 +29,6 @@ namespace Booking.Data
         public DbSet<EventAtcPosition> EventAtcPositions { get; set; }
         public DbSet<AtcPositionBooking> BookedAtcPositions { get; set; }
         public DbSet<Administrator> Administrators { get; set; }
+        public DbSet<DbTokenData> IvaoTokenData { get; set; }
     }
 }

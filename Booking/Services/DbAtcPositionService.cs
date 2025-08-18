@@ -13,10 +13,10 @@ namespace Booking.Services
             dbContext.Entry(position).State = EntityState.Added;
             await dbContext.SaveChangesAsync();
         }
-        async Task<List<AtcPosition>> IAtcPositionService.GetAllAtcPositions()
+        async Task<List<AtcPosition>> IAtcPositionService.GetAllAtcPositions(string divisionId)
         {
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.AtcPositions.AsNoTracking().ToListAsync();
+            return await dbContext.AtcPositions.Where(a => a.DivisionId == divisionId).AsNoTracking().ToListAsync();
         }
         async Task<AtcPosition?> IAtcPositionService.GetAtcPosition(Guid id)
         {
