@@ -17,15 +17,15 @@ namespace Booking.Ivao.Services
         {
             try
             {
-                _httpClient.DefaultRequestHeaders.Authorization =
-                        new AuthenticationHeaderValue("apiKey", apiKey);
-                var response = await _httpClient.GetAsync($"baseUrl/v2/positions/search?startsWith={position}");
+                _httpClient.DefaultRequestHeaders.Add("apiKey", apiKey);
+                var response = await _httpClient.GetAsync($"{baseUrl}/v2/positions/search?startsWith={position}");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadAsStringAsync();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 //Disregard error
+                Console.WriteLine(ex.ToString());
             }
             return "";
         }
