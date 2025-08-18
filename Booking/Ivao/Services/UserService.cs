@@ -138,17 +138,16 @@ namespace Booking.Ivao.Services
             var obj = JsonSerializer.Deserialize<UserInfo>(json);
             return obj?.rating.atcRating.id ?? 0;
         }
-        public async Task<bool> UserHasGca()
+        public async Task<bool> UserHasGca(string divisionId)
         {
             var json = await GetUserData();
             var obj = JsonSerializer.Deserialize<UserInfo>(json);
             if (obj is not null)
             {
                 var gcas = obj.gcas;
-                var divId = _configuration["DivisionId"]?.ToString().ToUpper();
                 foreach (var gca in gcas)
                 {
-                    if (gca.Equals(divId, StringComparison.OrdinalIgnoreCase))
+                    if (gca.Equals(divisionId, StringComparison.OrdinalIgnoreCase))
                         return true;
                 }
             }

@@ -94,7 +94,7 @@
 	{
 		IsAdmin = await IvaoUserService.GetIsRole("ATC");
 		string userDivId = await IvaoUserService.GetUserDivisionId();
-		if (userDivId.Equals(DivisionId, StringComparison.OrdinalIgnoreCase) || await IvaoUserService.UserHasGca())
+		if (userDivId.Equals(DivisionId, StringComparison.OrdinalIgnoreCase) || await IvaoUserService.UserHasGca(DivisionId))
 		{
 			IsAllowed = true;
 		}
