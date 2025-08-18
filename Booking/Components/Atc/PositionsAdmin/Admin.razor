@@ -31,6 +31,7 @@
 			<HeaderTemplate>
 				<div>
 					<button type="button" class="btn btn-success" @onclick="NewPosition">New position</button>
+					<button type="button" class="btn btn-primary" @onclick="@(()=>NavigationManager.NavigateTo($"{DivisionId}/positions/admin/import"))">Import from IVAO</button>
 				</div>
 			</HeaderTemplate>
 			<ChildContent Context="p">
