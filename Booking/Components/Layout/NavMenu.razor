@@ -27,8 +27,21 @@
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" @onclick:preventDefault="true">Administration</a>
                     <ul class="dropdown-menu">
-                        <li><NavLink class="dropdown-item" href="@($"{DivisionId}/events/admin")">Manage Events</NavLink></li>
-                        <li><NavLink class="dropdown-item" href="@($"{DivisionId}/administrators/users")">Manage Administrators</NavLink></li>
+                        <RoleAuthorizeView Roles="@(new[] { "EVENT" })">
+                            <Authorized>
+                                <li><NavLink class="dropdown-item" href="@($"{DivisionId}/events/admin")">Manage Events</NavLink></li>
+                            </Authorized>
+                        </RoleAuthorizeView>
+                        <RoleAuthorizeView Roles="@(new[] { "DIR" })">
+                            <Authorized>
+                                <li><NavLink class="dropdown-item" href="@($"{DivisionId}/administrators/users")">Manage Administrators</NavLink></li>
+                            </Authorized>
+                        </RoleAuthorizeView>
+                        <RoleAuthorizeView Roles="@(new[] { "ATC" })">
+                            <Authorized>
+                                <li><NavLink class="dropdown-item" href="@($"{DivisionId}/positions/admin")">Manage ATC positions</NavLink></li>
+                            </Authorized>
+                        </RoleAuthorizeView>
                     </ul>
                 </div>
             </Authorized>

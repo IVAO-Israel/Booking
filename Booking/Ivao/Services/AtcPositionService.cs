@@ -37,7 +37,7 @@ namespace Booking.Ivao.Services
                 var obj = JsonSerializer.Deserialize<List<SearchPositionResult>>(json);
                 if (obj is not null)
                 {
-                    return obj.FirstOrDefault();
+                    return obj.Where(p => p.Position != "ATIS").FirstOrDefault();
                 }
             } catch (Exception)
             {
@@ -53,7 +53,7 @@ namespace Booking.Ivao.Services
                 var obj = JsonSerializer.Deserialize<List<SearchPositionResult>>(json);
                 if (obj is not null)
                 {
-                    return obj;
+                    return obj.Where(p => p.Position != "ATIS").ToList();
                 }
             }
             catch (Exception)
