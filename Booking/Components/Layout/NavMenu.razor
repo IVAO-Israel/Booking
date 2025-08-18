@@ -13,12 +13,12 @@
             </div>
         </div>
         <div class="nav-item">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <NavLink class="nav-link" href="@DivisionId" Match="NavLinkMatch.All">
                 Home
             </NavLink>
         </div>
         <div class="nav-item">
-            <NavLink class="nav-link" href="events/upcoming" Match="NavLinkMatch.All">
+            <NavLink class="nav-link" href="@($"{DivisionId}/events/upcoming")" Match="NavLinkMatch.All">
                 Upcoming event
             </NavLink>
         </div>
@@ -27,7 +27,7 @@
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" @onclick:preventDefault="true">Administration</a>
                     <ul class="dropdown-menu">
-                        <li><NavLink class="dropdown-item" href="events/admin">Manage Events</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="@($"{DivisionId}/events/admin")">Manage Events</NavLink></li>
                         <li><NavLink class="dropdown-item" href="@($"{DivisionId}/administrators/users")">Manage Administrators</NavLink></li>
                     </ul>
                 </div>
