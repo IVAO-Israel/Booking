@@ -17,6 +17,7 @@ namespace Booking.Ivao.Services
         {
             try
             {
+                _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("apiKey", apiKey);
                 var response = await _httpClient.GetAsync($"{baseUrl}/v2/positions/search?startsWith={position}");
                 response.EnsureSuccessStatusCode();

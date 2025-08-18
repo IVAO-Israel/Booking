@@ -49,7 +49,7 @@ namespace Booking.Ivao.Services
                     if (tokenData == null)
                         return RedirectToLogin();
                 }
-
+                _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", tokenData.AccessToken);
 
@@ -87,7 +87,7 @@ namespace Booking.Ivao.Services
             {
                 Content = new FormUrlEncodedContent(parameters)
             };
-
+            _httpClient.DefaultRequestHeaders.Clear();
             var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)
                 return null;
