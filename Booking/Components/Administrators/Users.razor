@@ -1,9 +1,10 @@
-﻿@page "/administrators/users"
+﻿@page "/{DivisionId}/administrators/users"
 @using Booking.Ivao.Services
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Policy = "Administrator")]
 @inject IAdministratorService AdministratorService
 @inject UserService IvaoUserService
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 @using System.ComponentModel.DataAnnotations
 @using Booking.Services
@@ -119,6 +120,8 @@
 
 
 @code {
+    [Parameter]
+    public string DivisionId { get; set; } = default!;
     private List<Administrator> _admins = new();
     private AdminFormModel _adminForm = new();
     private Administrator? _adminToDelete;
@@ -131,13 +134,16 @@
         if (firstRender)
         {
             _currentUserVid = await IvaoUserService.GetUserIvaoId();
+            DivisionId = DivisionId.ToUpper();
+            var admin = await AdministratorService.GetAdministrator(_currentUserVid);
+            admin?.EnsureIsAllowedDivision(DivisionId, NavigationManager);
             await Load();
         }
     }
 
     private async Task Load()
     {
-        _admins = (await AdministratorService.GetAllAdministrators()).ToList();
+        _admins = (await AdministratorService.GetAllAdministrators(DivisionId)).ToList();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -180,7 +186,8 @@
         var newAdmin = new Administrator
             {
                 Id = Guid.Empty,
-                IVAOUserId = _adminForm.IVAOUserId
+                IVAOUserId = _adminForm.IVAOUserId,
+                DivisionId = DivisionId
             };
         await AdministratorService.AddAdministrator(newAdmin);
         _admins.Add(newAdmin);

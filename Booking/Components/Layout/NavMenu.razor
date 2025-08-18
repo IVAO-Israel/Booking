@@ -7,18 +7,18 @@
         <div class="top-row ps-3 navbar bg-light">
             <div class="container-fluid">
                 <a class="navbar-brand" href="">
-                    <img src="main_logo.png" class="w-100"/>
+                    <img src="@($"/divisions/{DivisionId}/main_logo.png")" class="w-100"/>
                     <div class="text-center w-100" style="color:#0D2C99;">Booking</div>
                 </a>
             </div>
         </div>
         <div class="nav-item">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <NavLink class="nav-link" href="@DivisionId" Match="NavLinkMatch.All">
                 Home
             </NavLink>
         </div>
         <div class="nav-item">
-            <NavLink class="nav-link" href="events/upcoming" Match="NavLinkMatch.All">
+            <NavLink class="nav-link" href="@($"{DivisionId}/events/upcoming")" Match="NavLinkMatch.All">
                 Upcoming event
             </NavLink>
         </div>
@@ -27,8 +27,8 @@
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" @onclick:preventDefault="true">Administration</a>
                     <ul class="dropdown-menu">
-                        <li><NavLink class="dropdown-item" href="events/admin">Manage Events</NavLink></li>
-                        <li><NavLink class="dropdown-item" href="administrators/users">Manage Administrators</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="@($"{DivisionId}/events/admin")">Manage Events</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="@($"{DivisionId}/administrators/users")">Manage Administrators</NavLink></li>
                     </ul>
                 </div>
             </Authorized>
@@ -52,12 +52,20 @@
     </nav>
 </div>
 @code {
-    [Parameter] public string? Id { get; set; }
+    [Parameter]
+    public string? Id { get; set; }
+    public string DivisionId { get; set; } = default!;
     private string? currentUrl;
     protected override void OnInitialized()
     {
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
+        var segments = currentUrl.ToUpper().Split('/', StringSplitOptions.RemoveEmptyEntries);
+        var divId = segments.FirstOrDefault();
+        if(divId is null)
+        {
+            NavigationManager.NavigateTo("IL");
+        }
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)

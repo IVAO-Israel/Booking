@@ -1,4 +1,4 @@
-﻿@page "/events/{EventUrl}/atc/positions"
+﻿@page "/{DivisionId}/events/{EventUrl}/atc/positions"
 @using Booking.Data
 @using Booking.Ivao.Services
 @using Booking.Services
@@ -77,22 +77,16 @@
 @code {
 	[Parameter]
 	public string EventUrl { get; set; } = default!;
+	[Parameter]
+	public string DivisionId { get; set; } = default!;
 	private Event? Event;
-	private string DivisionId = "unknown";
 	private bool IsAllowed = false;
 	private bool IsAdmin = false;
-	protected override void OnInitialized()
-	{
-		var divId = Configuration["DivisionId"]?.ToString().ToUpper();
-		if(divId is not null)
-		{
-			DivisionId = divId;
-		}
-	}
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (firstRender)
 		{
+			DivisionId = DivisionId.ToUpper();
 			await Load();
 		}
 	}
@@ -104,7 +98,7 @@
 		{
 			IsAllowed = true;
 		}
-		Event = await EventService.GetEventByUrl(EventUrl);
+		Event = await EventService.GetEventByUrl(DivisionId, EventUrl);
 		if (Event is null)
 		{
 			if (IsAdmin && Guid.TryParse(EventUrl, out Guid id))
@@ -112,7 +106,7 @@
 				Event = await EventService.GetEvent(id);
 				if(Event is null)
 				{
-					NavigationManager.NavigateTo("events/admin");
+					NavigationManager.NavigateTo($"{DivisionId}/events/admin");
 				}
 				else
 				{
@@ -121,7 +115,7 @@
 			}
 			else
 			{
-				NavigationManager.NavigateTo("events/upcoming");
+				NavigationManager.NavigateTo($"{DivisionId}/events/upcoming");
 			}
 		}
 		else
