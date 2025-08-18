@@ -71,7 +71,7 @@
 			</div>
 		</div>
 	</div>
-	<PositionsTimeline Event="Event"/>
+	<PositionsTimeline Event="Event" IsAdmin="IsAdmin"/>
 }
 
 @code {
@@ -92,7 +92,7 @@
 	}
 	private async Task Load()
 	{
-		IsAdmin = await IvaoUserService.GetIsAdmin();
+		IsAdmin = await IvaoUserService.GetIsRole("ATC");
 		string userDivId = await IvaoUserService.GetUserDivisionId();
 		if (userDivId.Equals(DivisionId, StringComparison.OrdinalIgnoreCase) || await IvaoUserService.UserHasGca())
 		{

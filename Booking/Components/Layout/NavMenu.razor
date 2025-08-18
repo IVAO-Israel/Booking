@@ -22,7 +22,7 @@
                 Upcoming event
             </NavLink>
         </div>
-        <AuthorizeView Policy="Administrator">
+        <RoleAuthorizeView Roles="@(new[] { "ADMIN", "DIR", "EVENT", "ATC", "FLIGHT" })">
             <Authorized>
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" @onclick:preventDefault="true">Administration</a>
@@ -32,7 +32,7 @@
                     </ul>
                 </div>
             </Authorized>
-        </AuthorizeView>
+        </RoleAuthorizeView>
         <AuthorizeView>
             <Authorized>
                 <div class="nav-item">
@@ -52,8 +52,6 @@
     </nav>
 </div>
 @code {
-    [Parameter]
-    public string? Id { get; set; }
     public string DivisionId { get; set; } = default!;
     private string? currentUrl;
     protected override void OnInitialized()
@@ -62,9 +60,13 @@
         NavigationManager.LocationChanged += OnLocationChanged;
         var segments = currentUrl.ToUpper().Split('/', StringSplitOptions.RemoveEmptyEntries);
         var divId = segments.FirstOrDefault();
-        if(divId is null)
+        if (divId is null)
         {
             NavigationManager.NavigateTo("IL");
+        }
+        else
+        {
+            DivisionId = divId;
         }
     }
 

@@ -14,7 +14,7 @@ namespace Booking.Authorization
 
         private static readonly Dictionary<string, string[]> RoleHierarchy = new()
         {
-            { "ADMIN",   new[] { "ADMIN", "DIR", "EVENT", "ATC", "FLIGHT" } },
+            { "ADMIN",  new[] { "ADMIN", "DIR", "EVENT", "ATC", "FLIGHT" } },
             { "DIR",    new[] { "DIR", "EVENT", "ATC", "FLIGHT" } },
             { "EVENT",  new[] { "EVENT", "ATC", "FLIGHT" } },
             { "ATC",    new[] { "ATC" } },
@@ -32,12 +32,10 @@ namespace Booking.Authorization
 
                 if (admin?.Roles is not null)
                 {
-                    if (RoleHierarchy.TryGetValue(requirement.Role, out var allowedRoles))
+                    if (admin.Roles.Any(userRole => RoleHierarchy.TryGetValue(userRole.Role, out var userAllowedRoles) &&
+                        userAllowedRoles.Contains(requirement.Role)))
                     {
-                        if (admin.Roles.Any(r => allowedRoles.Contains(r.Role)))
-                        {
-                            context.Succeed(requirement);
-                        }
+                        context.Succeed(requirement);
                     }
                 }
             }

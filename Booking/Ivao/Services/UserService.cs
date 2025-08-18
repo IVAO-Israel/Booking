@@ -119,11 +119,11 @@ namespace Booking.Ivao.Services
             var vid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return vid != null && int.TryParse(vid, out var id) ? id : 0;
         }
-        public async Task<bool> GetIsAdmin()
+        public async Task<bool> GetIsRole(string role)
         {
             var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
-            var result = await _authorizationService.AuthorizeAsync(user, "Administrator");
+            var result = await _authorizationService.AuthorizeAsync(user, role);
             return result.Succeeded;
         }
         public async Task<string> GetUserDivisionId()

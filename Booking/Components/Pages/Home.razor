@@ -1,3 +1,7 @@
 ﻿@page "/"
 @page "/{DivisionId}"
 <PageTitle>Home</PageTitle>
+@code{
+	[Parameter]
+	public string DivisionId { get; set; } = default!;
+}

@@ -171,14 +171,14 @@
     public Event Event { get; set; }
     private List<PositionTimeBooking> PositionTimesBookings = [];
     private double Step;
-    private bool IsAdmin = false;
+    [Parameter]
+    public bool IsAdmin { get; set; } = false;
     private int CurrentIvaoUserId;
     private int CurrentIvaoUserAtcRating;
     private BookingModal? BookingModal;
     private PositionModal? PositionModal;
     protected override async Task OnInitializedAsync()
     {
-        IsAdmin = await IvaoUserService.GetIsAdmin();
         CurrentIvaoUserId = await IvaoUserService.GetUserIvaoId();
         CurrentIvaoUserAtcRating = await IvaoUserService.GetUserAtcRating();
         await Load();
