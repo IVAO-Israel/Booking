@@ -1,6 +1,7 @@
 ﻿@implements IDisposable
 @using Microsoft.AspNetCore.Components.Authorization
 @inject NavigationManager NavigationManager
+@inject Booking.Data.BookingDbContext DbContext
 
 <div class="nav-scrollable">
     <nav class="nav flex-column">
@@ -11,6 +12,14 @@
                     <div class="text-center w-100" style="color:#0D2C99;">Booking</div>
                 </a>
             </div>
+        </div>
+        <div class="nav-item">
+            <InputSelect class="form-control" Value="@DivisionId" ValueExpression="()=>DivisionId" ValueChanged="(string divId)=>DivisionChanged(divId)">
+                @foreach(string div in divisions)
+                {
+                    <option>@div</option>
+                }    
+            </InputSelect>
         </div>
         <div class="nav-item">
             <NavLink class="nav-link" href="@DivisionId" Match="NavLinkMatch.All">
@@ -67,6 +76,7 @@
 @code {
     public string DivisionId { get; set; } = default!;
     private string? currentUrl;
+    private List<string> divisions = default!;
     protected override void OnInitialized()
     {
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
@@ -81,12 +91,19 @@
         {
             DivisionId = divId;
         }
+        divisions = DbContext.Administrators.Select(a => a.DivisionId).Distinct().ToList()!;
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
         StateHasChanged();
+    }
+
+    private void DivisionChanged(string divisionId)
+    {
+        DivisionId = divisionId.ToUpper();
+        NavigationManager.NavigateTo(DivisionId);
     }
 
     public void Dispose()
