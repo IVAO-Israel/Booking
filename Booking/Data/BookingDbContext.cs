@@ -23,6 +23,9 @@ namespace Booking.Data
                                                      .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<AdministratorRole>().HasOne(p => p.Administrator).WithMany(p => p.Roles)
                                                     .HasForeignKey(p => p.AdministratorId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Event>().HasOne<Division>().WithMany().HasForeignKey(p => p.DivisionId);
+            modelBuilder.Entity<AtcPosition>().HasOne<Division>().WithMany().HasForeignKey(p => p.DivisionId);
+            modelBuilder.Entity<AdministratorRole>().HasOne<Division>().WithMany().HasForeignKey(p => p.DivisionId);
         }
         public DbSet<Event> Events { get; set; }
         public DbSet<AtcPosition> AtcPositions { get; set; }
@@ -30,5 +33,6 @@ namespace Booking.Data
         public DbSet<AtcPositionBooking> BookedAtcPositions { get; set; }
         public DbSet<Administrator> Administrators { get; set; }
         public DbSet<DbTokenData> IvaoTokenData { get; set; }
+        public DbSet<Division> Divisions { get; set; }
     }
 }
