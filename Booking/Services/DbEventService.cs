@@ -45,12 +45,6 @@ namespace Booking.Services
             if (oldEvent is not null && (eventObj.BeginTime != oldEvent.BeginTime || eventObj.EndTime != oldEvent.EndTime))
             {
                 //If event time is changed
-                await dbContext.Entry(eventObj).Collection(e => e.AvailableAtcPositions!).LoadAsync();
-                foreach (var pos in eventObj.AvailableAtcPositions!)
-                {
-                    await dbContext.Entry(pos).Reference(p => p.AtcPosition).LoadAsync();
-                    await dbContext.Entry(pos).Collection(p => p.Bookings!).LoadAsync();
-                }
                 double beginHourDifferenece = (eventObj.BeginTime - oldEvent.BeginTime).TotalHours;
                 double endHourDifferenece = (eventObj.EndTime - oldEvent.EndTime).TotalHours;
                 foreach (var position in eventObj.AvailableAtcPositions!)
@@ -58,6 +52,7 @@ namespace Booking.Services
                     position.BeginTime.AddHours(beginHourDifferenece);
                     position.EndTime.AddHours(endHourDifferenece);
                     dbContext.Entry(position).State = EntityState.Modified;
+                    await dbContext.Entry(position).Collection(p => p.Bookings!).LoadAsync();
                     foreach (var booking in position.Bookings!)
                     {
                         if (booking.BeginTime < position.BeginTime || booking.EndTime > position.EndTime)
