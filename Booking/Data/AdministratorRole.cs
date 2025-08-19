@@ -12,5 +12,9 @@ namespace Booking.Data
         /// DIR, EVENT, ATC, FLIGHT
         /// </summary>
         public string Role { get; set; } = default!;
+        /// <summary>
+        /// If it's null, it can edit any division.
+        /// </summary>
+        public string? DivisionId { get; set; }
     }
 }
