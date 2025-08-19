@@ -54,12 +54,15 @@ namespace Booking.Services
                     position.BeginTime.AddHours(beginHourDifferenece);
                     position.EndTime.AddHours(endHourDifferenece);
                     dbContext.Entry(position).State = EntityState.Modified;
-                    foreach (var booking in position.Bookings!)
+                    if (position.Bookings is not null)
                     {
-                        if (booking.BeginTime < position.BeginTime || booking.EndTime > position.EndTime)
+                        foreach (var booking in position.Bookings)
                         {
-                            //If booking is out of range, delete it
-                            dbContext.Entry(booking).State = EntityState.Deleted;
+                            if (booking.BeginTime < position.BeginTime || booking.EndTime > position.EndTime)
+                            {
+                                //If booking is out of range, delete it
+                                dbContext.Entry(booking).State = EntityState.Deleted;
+                            }
                         }
                     }
                 }
