@@ -186,7 +186,6 @@
             {
                 Id = Guid.Empty,
                 IVAOUserId = _adminForm.IVAOUserId,
-                DivisionId = DivisionId,
             };
         await AdministratorService.AddAdministrator(newAdmin);
         _admins.Add(newAdmin);

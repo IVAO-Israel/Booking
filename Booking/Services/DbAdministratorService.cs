@@ -34,7 +34,7 @@ namespace Booking.Services
         async Task<List<Administrator>> IAdministratorService.GetAllAdministrators(string divisionId)
         {
             using BookingDbContext dbContext = await _factory.CreateDbContextAsync();
-            return await dbContext.Administrators.Where(a => a.DivisionId == divisionId)
+            return await dbContext.Administrators.Where(a => a.Roles!.Where(r => r.DivisionId == divisionId).Any())
                 .Include(a => a.Roles).AsNoTracking().ToListAsync();
         }
     }

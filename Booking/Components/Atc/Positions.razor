@@ -21,15 +21,11 @@
 	<div class="alert alert-danger text-center">
 		Only memebers of @DivisionId or members holding GCA are allowed to book ATC positions.
 	</div>
-} else if (!IsAdmin)
+} else if (!IsAdmin && DateTime.UtcNow > Event.EndTime)
 {
-	if(DateTime.UtcNow > Event.EndTime)
-	{
-		<div class="alert alert-success">Event is finished.</div>
-	} else if (!Event.IsVisible)
-	{
-		<div class="alert alert-danger">Event is not published.</div>
-	}
+	<div class="alert alert-success">Event is finished.</div>
+} else if (!IsAdmin && !Event.IsVisible){
+	<div class="alert alert-danger">Event is not published.</div>
 } else
 {
 	if (IsAdmin)
