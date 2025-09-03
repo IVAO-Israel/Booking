@@ -1,4 +1,4 @@
-﻿@implements IDisposable
+@implements IDisposable
 @using Microsoft.AspNetCore.Components.Authorization
 @inject NavigationManager NavigationManager
 @inject Booking.Data.BookingDbContext DbContext
@@ -82,7 +82,7 @@
     {
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
-        divisions = DbContext.Administrators.Select(a => a.DivisionId).Distinct().ToList()!;
+        divisions = DbContext.Divisions.Select(d => d.DivisionId).ToList();
     }
     protected override void OnParametersSet()
     {
