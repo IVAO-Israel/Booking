@@ -147,7 +147,7 @@ namespace Booking.Ivao.Services
                 var gcas = obj.gcas;
                 foreach (var gca in gcas)
                 {
-                    if (gca.Equals(divisionId, StringComparison.OrdinalIgnoreCase))
+                    if (gca.divisionId.Equals(divisionId, StringComparison.OrdinalIgnoreCase))
                         return true;
                 }
             }
