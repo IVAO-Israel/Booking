@@ -156,7 +156,17 @@
                              title="@BookingTime(booking)"
                              @onclick="()=>EditBooking(booking)">
                                 @booking.IVAOUserId
-                    </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="gantt-bar clickable bg-danger"
+                             style="@GetBarStyle(booking)"
+                             data-bs-toggle="tooltip"
+                             data-bs-placement="top"
+                             title="@BookingTime(booking)">
+                                @booking.IVAOUserId
+                        </div>
                     }
                 }
             </div>
